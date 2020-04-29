@@ -1,0 +1,71 @@
+;Auto-generated Diamond Directive File. Can be deleted without harm.
+.Set CabinetNameTemplate=C:\Users\Siddharth Ray\Desktop\Project DJTorsten\~DJTorsten.CAB
+.Set CompressionType=LZX
+.Set CompressionLevel=7
+.Set InfFileName=C:\Users\Siddharth Ray\Desktop\Project DJTorsten\~DJTorsten_LAYOUT.INF
+.Set RptFileName=C:\Users\Siddharth Ray\Desktop\Project DJTorsten\~DJTorsten.RPT
+.Set MaxDiskSize=CDROM
+.Set ReservePerCabinetSize=0
+.Set InfCabinetLineFormat=*cab#*=Application Source Media,*cabfile*,0
+.Set Compress=on
+.Set CompressionMemory=21
+.Set DiskDirectoryTemplate=
+.Set Cabinet=ON
+.Set MaxCabinetSize=999999999
+.Set InfDiskHeader=
+.Set InfDiskLineFormat=
+.Set InfCabinetHeader=[SourceDisksNames]
+.Set InfFileHeader=
+.Set InfFileHeader1=[SourceDisksFiles]
+.Set InfFileLineFormat=*file*=*cab#*,,*size*,*csum*
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\app.py
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\CHROME~1.EXE
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\CREATE~1.VBS
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\debug.log
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\DJTORS~1.EXE
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\DJTORS~1.PY
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\favicon.ico
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\main.c
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\main.exe
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\main.py
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\README.md
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\REQUIR~1.TXT
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\SERVIC~1.JSO
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\UNIXIN~1.SH
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\WINDOW~1.BAT
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\web\favicon.png
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\web\MAIN~1.HTM
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\web\NUNITO~1.TTF
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\web\script.js
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\web\styles.css
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\_asyncio.pyd
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\_bz2.pyd
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\_ctypes.pyd
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\_decimal.pyd
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\_ELEME~1.PYD
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\_hashlib.pyd
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\_lzma.pyd
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\_msi.pyd
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\_MULTI~1.PYD
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\_OVERL~1.PYD
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\_queue.pyd
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\_socket.pyd
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\_sqlite3.pyd
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\_ssl.pyd
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\LIBCRY~1.DLL
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\libffi-7.dll
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\LIBSSL~1.DLL
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\LICENSE.txt
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\pyexpat.pyd
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\python.cat
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\python.exe
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\python3.dll
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\PYTHON~1._PT
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\python38.dll
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\python38.zip
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\pythonw.exe
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\select.pyd
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\sqlite3.dll
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\UNICOD~1.PYD
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\VCRUNT~1.DLL
+C:\Users\SIDDHA~1\Desktop\PROJEC~1\Python38\winsound.pyd

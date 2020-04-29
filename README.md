@@ -8,17 +8,32 @@ Stable Release
 [![Build Status](https://travis-ci.org/akashnimare/foco.svg?branch=master)](https://travis-ci.org/akashnimare/foco)
 [![Windows Build Status](https://ci.appveyor.com/api/projects/status/github/akashnimare/foco?branch=master&svg=true)](https://ci.appveyor.com/project/akashnimare/foco/branch/master)
 
-## Screenshots
-Include logo/demo screenshot etc.
+## Required Prerequisites
+Google Chrome is **REQUIRED** for this application
+
+## Optional Prerequisites
+A Youtube Premium Account is recommended in order to have no ads in between songs
 
 
 ## Installation
-Provide step by step series of examples and explanations about how to get a development env running.
+In order to install the dependencies required for this application:
+
+### Windows
+Run `windowsInstaller.bat` by right clicking it in File Explorer and choosing **Run as Administrator**
+
+### Mac/Linux
+Run `unixInstaller.sh` by double clicking the file.
+
+## Updating to a Newer Version
+
+### Windows
+Run `windowsUpdater.bat` by right clicking it in File Explorer and choosing **Run as Administrator**
+
+### Mac/Linux
+Run `unixUpdater.sh` by double clicking the file.
 
 ## How to use?
-If people like your project they’ll want to learn how they can use it. To do so include step by step guide to use your project.
+
 
 ## License
-A short snippet describing the license (MIT, Apache etc)
-
-MIT © [Yourname]()
+To read our License [Click Here](/LICENSE.md)

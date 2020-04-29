@@ -10,3 +10,4 @@
 [0423/231415.658:ERROR:exception_snapshot_win.cc(98)] thread ID 23712 not found in process
 [0424/112604.147:ERROR:file_io.cc(89)] ReadExactly: expected 36, observed 0
 [0424/220418.294:ERROR:file_io.cc(89)] ReadExactly: expected 36, observed 0
+[0427/220146.426:ERROR:file_io.cc(89)] ReadExactly: expected 36, observed 0

@@ -38,11 +38,11 @@ def getEmailPassword(JSemail, JSpassword):
 
 @eel.expose
 def getDashboardBool(x):
-    #print(str(x))
-    if(x == True):
-        print('Dashboard is active')
-    else:
-        print('Dasboard is deactivated')
+    print(str(x))
+    # if(x == 'true'):
+    #     print('Dashboard is active')
+    # else:
+    #     print('Dasboard is deactivated')
 
 @eel.expose
 def runScript(val):
