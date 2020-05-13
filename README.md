@@ -1,4 +1,4 @@
-# DJTorsten
+## DJTorsten
 DJTorsten is a AI Powered DJ that can play music and control lights.
 
 
