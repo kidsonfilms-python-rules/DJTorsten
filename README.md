@@ -1,39 +1,45 @@
-## DJTorsten
-DJTorsten is a AI Powered DJ that can play music and control lights.
+# electron-quick-start
 
+**Clone and run for a quick way to see Electron in action.**
 
-## Build status
-Stable Release
+This is a minimal Electron application based on the [Quick Start Guide](https://electronjs.org/docs/tutorial/quick-start) within the Electron documentation.
 
-[![Build Status](https://travis-ci.org/akashnimare/foco.svg?branch=master)](https://travis-ci.org/akashnimare/foco)
-[![Windows Build Status](https://ci.appveyor.com/api/projects/status/github/akashnimare/foco?branch=master&svg=true)](https://ci.appveyor.com/project/akashnimare/foco/branch/master)
+**Use this app along with the [Electron API Demos](https://electronjs.org/#get-started) app for API code examples to help you get started.**
 
-## Required Prerequisites
-Google Chrome is **REQUIRED** for this application
+A basic Electron application needs just these files:
 
-## Optional Prerequisites
-A Youtube Premium Account is recommended in order to have no ads in between songs
+- `package.json` - Points to the app's main file and lists its details and dependencies.
+- `main.js` - Starts the app and creates a browser window to render HTML. This is the app's **main process**.
+- `index.html` - A web page to render. This is the app's **renderer process**.
 
+You can learn more about each of these components within the [Quick Start Guide](https://electronjs.org/docs/tutorial/quick-start).
 
-## Installation
-In order to install the dependencies required for this application:
+## To Use
 
-### Windows
-Run `windowsInstaller.bat` by right clicking it in File Explorer and choosing **Run as Administrator**
+To clone and run this repository you'll need [Git](https://git-scm.com) and [Node.js](https://nodejs.org/en/download/) (which comes with [npm](http://npmjs.com)) installed on your computer. From your command line:
 
-### Mac/Linux
-Run `unixInstaller.sh` by double clicking the file.
+```bash
+# Clone this repository
+git clone https://github.com/electron/electron-quick-start
+# Go into the repository
+cd electron-quick-start
+# Install dependencies
+npm install
+# Run the app
+npm start
+```
 
-## Updating to a Newer Version
+Note: If you're using Linux Bash for Windows, [see this guide](https://www.howtogeek.com/261575/how-to-run-graphical-linux-desktop-applications-from-windows-10s-bash-shell/) or use `node` from the command prompt.
 
-### Windows
-Run `windowsUpdater.bat` by right clicking it in File Explorer and choosing **Run as Administrator**
+## Resources for Learning Electron
 
-### Mac/Linux
-Run `unixUpdater.sh` by double clicking the file.
-
-## How to use?
-
+- [electronjs.org/docs](https://electronjs.org/docs) - all of Electron's documentation
+- [electronjs.org/community#boilerplates](https://electronjs.org/community#boilerplates) - sample starter apps created by the community
+- [electron/electron-quick-start](https://github.com/electron/electron-quick-start) - a very basic starter Electron app
+- [electron/simple-samples](https://github.com/electron/simple-samples) - small applications with ideas for taking them further
+- [electron/electron-api-demos](https://github.com/electron/electron-api-demos) - an Electron app that teaches you how to use Electron
+- [hokein/electron-sample-apps](https://github.com/hokein/electron-sample-apps) - small demo apps for the various Electron APIs
 
 ## License
-To read our License [Click Here](/LICENSE.md)
+
+[CC0 1.0 (Public Domain)](LICENSE.md)

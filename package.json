@@ -1,0 +1,27 @@
+{
+  "name": "djtorsten",
+  "version": "3.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": "https://github.com/kidsonfilms-python-rules/DJTorsten",
+  "keywords": [
+    "Electron",
+    "quick",
+    "start",
+    "tutorial",
+    "demo"
+  ],
+  "author": "Siddharth Ray",
+  "license": "READ LICENSE.html",
+  "devDependencies": {
+    "electron": "^10.1.5"
+  },
+  "dependencies": {
+    "node-mp3-player": "^1.0.3",
+    "play-sound": "^1.1.3",
+    "youtube-mp3-downloader": "^0.7.4"
+  }
+}
