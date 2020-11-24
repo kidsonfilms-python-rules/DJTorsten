@@ -17,7 +17,7 @@
   "author": "Siddharth Ray",
   "license": "READ LICENSE.html",
   "devDependencies": {
-    "electron": "^10.1.5"
+    "electron": "^11.0.3"
   },
   "dependencies": {
     "node-mp3-player": "^1.0.3",
