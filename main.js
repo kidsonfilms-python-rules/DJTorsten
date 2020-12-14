@@ -9,14 +9,16 @@ function createWindow () {
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    show: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true
     }
   })
-
+  mainWindow.maximize()
   // and load the index.html of the app.
-  mainWindow.loadFile('index.html')
+  mainWindow.loadFile('signin.html')
+  mainWindow.show()
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
