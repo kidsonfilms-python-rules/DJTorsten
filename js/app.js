@@ -4,6 +4,7 @@ const ytdl = require('youtube-mp3-downloader');
 const fs = require('fs')
 const EventEmitter = require('events');
 const { resolve } = require('path');
+var getYoutubeTitle = require('get-youtube-title')
 
 var q = [];
 var downloadedq = [];
@@ -13,7 +14,32 @@ var eventEmitter = new EventEmitter();
 function add(url) {
     console.info(`Adding ${url} to Playing Queue...`)
     q.push(url)
+    eventEmitter.emit(`qUpdated`, url);
 }
+
+eventEmitter.on('qUpdated', async (link) => {
+    var main = document.getElementById('gpcolumn')
+    var song = document.createElement("div")
+    var songname = document.createElement("p")
+    var deletei = document.createElement('i')
+    var vidTitle = 'Unknown'
+
+    var vidRaw = `?${link.split('?')[1]}`
+    var v = new URLSearchParams(vidRaw).get('v');
+
+    getYoutubeTitle(v, function (err, title) {
+        vidTitle = title
+
+        song.className = "song"
+        songname.innerText = vidTitle;
+        deletei.className = "fas fa-trash";
+
+        song.appendChild(songname)
+        song.appendChild(deletei)
+        main.appendChild(song)
+    })
+
+})
 
 async function play(time, index) {
     if (downloadedq.length - 1 < index) return Error('Did not download requested song index')
@@ -28,7 +54,7 @@ async function play(time, index) {
             songInstance.kill()
             resolve()
         })
-    
+
         setTimeout(function () {
             songInstance.kill()
             return 0
@@ -66,19 +92,11 @@ async function start() {
     add('https://www.youtube.com/watch?v=w0AOGeqOnFY')
     add('https://www.youtube.com/watch?v=LDU_Txk06tM')
     var downloadingStatus = "WAITING"
-    for (index=0; index<q.length; index++) {
+    for (index = 0; index < q.length; index++) {
         await test(index, downloadingStatus).then(() => {
             console.log('Song Done!')
         })
     }
-    // main(index, downloadingStatus)
-    // eventEmitter.on('playFinished', () => {
-    //     console.info('Starting next song...')
-    //     index = index + 1
-    //     downloadingStatus = "WAITING"
-    //     main(index, downloadingStatus)
-           //console.log(`one with ${index}`)
-    // })
 }
 
 async function main(index, downloadingStatus) {
@@ -97,10 +115,10 @@ const test = async (index, downloadingStatus) => {
         eventEmitter.on(`downloadFinished ${index}`, async () => {
             downloadingStatus = "PLAYING"
             console.log(`calling play from test ${index}`)
-            await play(60, index)
+            await play(20, index)
             resolve('Done')
-            })
-    })    
+        })
+    })
 }
 
 // function test() {
@@ -138,11 +156,30 @@ function switchButton(switchto) {
 }
 
 
-var startButton = document.getElementById("start");
+class GuestPicksScene {
+    constructor() {
+
+    }
+    async start() {
+        if (status == 'STARTED') { console.error('Already Started'); return '' }
+        console.info('Starting...')
+        status = 'STARTED'
+        add('https://www.youtube.com/watch?v=LY39km8rkWY&list=PL2L0EVHlfS_LgbikIUg3O6rJ6b-T0EPjq&index=3')
+        add('https://www.youtube.com/watch?v=w0AOGeqOnFY')
+        add('https://www.youtube.com/watch?v=LDU_Txk06tM')
+        var downloadingStatus = "WAITING"
+        for (var index = 0; index < q.length; index++) {
+            await test(index, downloadingStatus).then(() => {
+                console.log('Song Done!')
+            })
+        }
+    }
+}
+
+var startButton = document.getElementById("startGuestPicks");
 startButton.onclick = function (event) {
     console.log(event);
-    // download('https://www.youtube.com/watch?v=NUYvbT6vTPs', 5)
-    start()
+    new GuestPicksScene().start()
     switchButton('stop')
 
 }

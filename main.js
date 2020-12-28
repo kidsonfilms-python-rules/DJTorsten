@@ -2,20 +2,17 @@
 const {app, BrowserWindow} = require('electron')
 const path = require('path')
 
-var button 
-
 function createWindow () {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1000,
+    height: 750,
     show: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true
     }
   })
-  mainWindow.maximize()
   // and load the index.html of the app.
   mainWindow.loadFile('signin.html')
   mainWindow.show()
