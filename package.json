@@ -17,7 +17,7 @@
   "author": "Siddharth Ray",
   "license": "READ LICENSE.html",
   "devDependencies": {
-    "electron": "^10.1.5"
+    "electron": "^11.1.1"
   },
   "dependencies": {
     "get-youtube-title": "^1.0.1",
