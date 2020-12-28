@@ -1,4 +1,8 @@
 // Import All Packages
+
+// General Packages
+
+// Guest Picks Packages
 var Soundplayer = require('play-sound')(opts = {})
 const ytdl = require('youtube-mp3-downloader');
 const fs = require('fs')
@@ -6,42 +10,43 @@ const EventEmitter = require('events');
 const { resolve } = require('path');
 var getYoutubeTitle = require('get-youtube-title')
 
+
+// GUEST PICKS
 var q = [];
 var downloadedq = [];
 var status = 'STOPPED'
 var eventEmitter = new EventEmitter();
 
-function add(url) {
-    console.info(`Adding ${url} to Playing Queue...`)
-    q.push(url)
-    eventEmitter.emit(`qUpdated`, url);
+async function gpAdd(url) {
+    return new Promise((resolve) => {
+        console.info(`Adding ${url} to Playing Queue...`)
+        q.push(url)
+    
+        var main = document.getElementById('gpcolumn')
+        var song = document.createElement("div")
+        var songname = document.createElement("p")
+        var deletei = document.createElement('i')
+        var vidTitle = 'Unknown'
+    
+        var vidRaw = `?${url.split('?')[1]}`
+        var v = new URLSearchParams(vidRaw).get('v');
+    
+        getYoutubeTitle(v, function (err, title) {
+            vidTitle = title
+    
+            song.className = "song"
+            songname.innerText = vidTitle;
+            deletei.className = "fas fa-trash";
+    
+            song.appendChild(songname)
+            song.appendChild(deletei)
+            main.appendChild(song)
+            resolve()
+        })
+    })
 }
 
-eventEmitter.on('qUpdated', async (link) => {
-    var main = document.getElementById('gpcolumn')
-    var song = document.createElement("div")
-    var songname = document.createElement("p")
-    var deletei = document.createElement('i')
-    var vidTitle = 'Unknown'
-
-    var vidRaw = `?${link.split('?')[1]}`
-    var v = new URLSearchParams(vidRaw).get('v');
-
-    getYoutubeTitle(v, function (err, title) {
-        vidTitle = title
-
-        song.className = "song"
-        songname.innerText = vidTitle;
-        deletei.className = "fas fa-trash";
-
-        song.appendChild(songname)
-        song.appendChild(deletei)
-        main.appendChild(song)
-    })
-
-})
-
-async function play(time, index) {
+async function gpPlay(time, index) {
     if (downloadedq.length - 1 < index) return Error('Did not download requested song index')
     console.info(`Playing ${index}.mp3...`)
     return new Promise(async (resolve) => {
@@ -54,6 +59,10 @@ async function play(time, index) {
             songInstance.kill()
             resolve()
         })
+        eventEmitter.on('skip', () => {
+            songInstance.kill()
+            resolve()
+        })
 
         setTimeout(function () {
             songInstance.kill()
@@ -62,15 +71,15 @@ async function play(time, index) {
     })
 }
 
-async function download(link, index) {
+async function gpDownload(link, index) {
     console.info(`Downloading ${link}, index ${index}...`)
     var vidRaw = `?${link.split('?')[1]}`
     var v = new URLSearchParams(vidRaw).get('v');
     const DOWNLOADER = new ytdl({
-        "ffmpegPath": "./assets/ffmpeg/ffmpeg",        // FFmpeg binary location
-        "outputPath": "./music/",    // Output file location (default: the home directory)
-        "youtubeVideoQuality": "highestaudio",  // Desired video quality (default: highestaudio
-        "progressTimeout": 0,                // Interval in ms for the progress reports (default: 1000)
+        "ffmpegPath": "./assets/ffmpeg/ffmpeg",  // || FFmpeg binary location
+        "outputPath": "./music/",               //  || Output file location (default: the home directory)
+        "youtubeVideoQuality": "highestaudio", //   || Desired video quality (default: highestaudio
+        "progressTimeout": 0,                 //    || Interval in ms for the progress reports (default: 1000)
     });
     DOWNLOADER.on("progress", function (progress) {
         console.log(JSON.stringify(progress));
@@ -84,55 +93,44 @@ async function download(link, index) {
     });
 }
 
-async function start() {
+async function gpStart() {
     if (status == 'STARTED') { console.error('Already Started'); return '' }
     console.info('Starting...')
+    eventEmitter.on('stop', () => {
+        resolve()
+        return 'Stopped by DJ'
+    })
     status = 'STARTED'
-    add('https://www.youtube.com/watch?v=LY39km8rkWY&list=PL2L0EVHlfS_LgbikIUg3O6rJ6b-T0EPjq&index=3')
-    add('https://www.youtube.com/watch?v=w0AOGeqOnFY')
-    add('https://www.youtube.com/watch?v=LDU_Txk06tM')
+    await gpAdd('https://www.youtube.com/watch?v=LY39km8rkWY&list=PL2L0EVHlfS_LgbikIUg3O6rJ6b-T0EPjq&index=3')
+    await gpAdd('https://www.youtube.com/watch?v=w0AOGeqOnFY')
+    await gpAdd('https://www.youtube.com/watch?v=LDU_Txk06tM')
     var downloadingStatus = "WAITING"
     for (index = 0; index < q.length; index++) {
-        await test(index, downloadingStatus).then(() => {
+        await gpMain(index, downloadingStatus).then(() => {
             console.log('Song Done!')
         })
     }
 }
 
-async function main(index, downloadingStatus) {
-    downloadingStatus = "DOWNLOADING"
-    await download(q[index], index)
-    eventEmitter.on(`downloadFinished ${index}`, () => {
-        downloadingStatus = "PLAYING"
-        play(20, index)
-    })
-}
-
-const test = async (index, downloadingStatus) => {
+const gpMain = async (index, downloadingStatus) => {
     return new Promise(async (resolve, reject) => {
         downloadingStatus = "DOWNLOADING"
-        await download(q[index], index)
+        await gpDownload(q[index], index)
         eventEmitter.on(`downloadFinished ${index}`, async () => {
             downloadingStatus = "PLAYING"
             console.log(`calling play from test ${index}`)
-            await play(20, index)
+            await gpPlay(20, index)
             resolve('Done')
         })
     })
 }
 
-// function test() {
-//     add('https://www.youtube.com/watch?v=LY39km8rkWY&list=PL2L0EVHlfS_LgbikIUg3O6rJ6b-T0EPjq&index=3')
-//     add('https://www.youtube.com/watch?v=w0AOGeqOnFY')
-//     add('https://www.youtube.com/watch?v=LDU_Txk06tM')
-//     download(q[0], 0)
-//     eventEmitter.on(`downloadFinished ${index}`, () => {
-//         play(20, 0)
-//     })
-// }
 
 function stop() {
     eventEmitter.emit('stop', "Event occurred");
+}
+function skip() {
+    eventEmitter.emit('skip', "Event occurred");
 }
 
 function switchButton(switchto) {
@@ -147,31 +145,9 @@ function switchButton(switchto) {
         startButton.innerText = 'START'
         startButton.onclick = function (event) {
             console.log(event);
-            // download('https://www.youtube.com/watch?v=NUYvbT6vTPs', 5)
-            start()
+            gpStart()
             switchButton('stop')
 
-        }
-    }
-}
-
-
-class GuestPicksScene {
-    constructor() {
-
-    }
-    async start() {
-        if (status == 'STARTED') { console.error('Already Started'); return '' }
-        console.info('Starting...')
-        status = 'STARTED'
-        add('https://www.youtube.com/watch?v=LY39km8rkWY&list=PL2L0EVHlfS_LgbikIUg3O6rJ6b-T0EPjq&index=3')
-        add('https://www.youtube.com/watch?v=w0AOGeqOnFY')
-        add('https://www.youtube.com/watch?v=LDU_Txk06tM')
-        var downloadingStatus = "WAITING"
-        for (var index = 0; index < q.length; index++) {
-            await test(index, downloadingStatus).then(() => {
-                console.log('Song Done!')
-            })
         }
     }
 }
@@ -179,8 +155,7 @@ class GuestPicksScene {
 var startButton = document.getElementById("startGuestPicks");
 startButton.onclick = function (event) {
     console.log(event);
-    new GuestPicksScene().start()
+    gpStart()
     switchButton('stop')
 
 }
-// download()
