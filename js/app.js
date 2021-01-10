@@ -23,9 +23,10 @@ var getYoutubeTitle = require('get-youtube-title')
 // GUEST PICKS
 
 class Song {
-    constructor(url, probarDiv) {
+    constructor(url, probarDiv, docName) {
         this.url = url
         this.progressDiv = probarDiv
+        this.docName = docName
     }
 }
 
@@ -36,40 +37,72 @@ var status = 'STOPPED'
 var eventEmitter = new EventEmitter();
 var partyID = '053467'
 
-async function gpAdd(url) {
+function sleep(ms) {
     return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
+}
+
+function arrayContains(needle, haystack) {
+    return (haystack.indexOf(needle));
+}
+
+async function gpAdd(url, docName) {
         console.info(`Adding ${url} to Playing Queue...`)
         var probar = document.createElement("div")
-        q.push(new Song(url, probar))
+        q.push(new Song(url, probar, docName))
 
         var main = document.getElementById('gpcolumn')
         var song = document.createElement("div")
         var songname = document.createElement("p")
         var deletei = document.createElement('i')
-        var vidTitle = 'Unknown'
+        
+        songname.innerText = '--'
+
+        song.className = "song"
+        deletei.className = "fas fa-trash";
+        deletei.onclick = () => {
+            db.collection(partyID).doc('Guest Picks').collection('Queue').doc(docName).delete().then(() => {
+                console.log(`Succesfully Deleted ${url}!`)
+                q.splice(docName, 1)
+                song.remove()
+            })
+        }
+        probar.className = 'probar'
+        song.appendChild(songname)
+        song.appendChild(deletei)
+        song.appendChild(probar)
+        console.log('Added Probar')
+        main.appendChild(song)
 
         var vidRaw = `?${url.split('?')[1]}`
         var v = new URLSearchParams(vidRaw).get('v');
 
         getYoutubeTitle(v, function (err, title) {
             vidTitle = title
-
-            song.className = "song"
             songname.innerText = vidTitle;
-            deletei.className = "fas fa-trash";
-            probar.className = 'probar'
-
-            song.appendChild(songname)
-            song.appendChild(deletei)
-            song.appendChild(probar)
-            main.appendChild(song)
-            resolve()
         })
-    })
 }
 
 function gpAddDb(songList) {
-  console.error('Not Supported Yet')
+    console.warn('Still in EXPERIMENTAL')
+    songList.forEach((s, i) => {
+        db.collection(partyID).doc("Guest Picks").get().then((doc) => {
+            db.collection(partyID).doc('Guest Picks').collection('Queue').doc((doc.data().currentDocName + 1).toString()).set({
+                url: s,
+                submitter: "DJ"
+            })
+            .then(function() {
+                console.log("Document successfully written!");
+                db.collection(partyID).doc('Guest Picks').update({
+                    currentDocName: firebase.firestore.FieldValue.increment(1)
+                });
+            })
+            .catch(function(error) {
+                console.error("Error writing document: ", error);
+            });
+        })
+    })
 }
 
 async function gpPlay(time, index) {
@@ -98,7 +131,13 @@ async function gpPlay(time, index) {
 }
 
 async function gpDownload(link, index) {
+    if (downloadedq.includes(link)) {
+        var cachei = await arrayContains(link, downloadedq)
+        eventEmitter.emit(`downloadFinished ${index}`, cachei);
+        return 'Already Downloaded'
+    }
     console.info(`Downloading ${link}, index ${index}...`)
+    const probar = q[index].progressDiv
     var vidRaw = `?${link.split('?')[1]}`
     var v = new URLSearchParams(vidRaw).get('v');
     const DOWNLOADER = new ytdl({
@@ -109,15 +148,16 @@ async function gpDownload(link, index) {
     });
     DOWNLOADER.on("progress", function (progress) {
         console.log(JSON.stringify(progress));
-        q[index].progressDiv.style.width = `${progress.progress.percentage.toString().split('.')[0]}%`
+        probar.style.width = `${progress.progress.percentage.toString().split('.')[0]}%`
     });
     DOWNLOADER.download(v, `${index}.mp3`)
     DOWNLOADER.on("finished", function (err, data) {
+        DOWNLOADER.removeAllListeners("progress")
         if (err) console.error(err)
-        q[index].progressDiv.style.width = "0%"
+        probar.style.width = "0%"
         console.info('Downloaded: \n', JSON.stringify(data));
-        downloadedq.push(data.youtubeLink)
-        eventEmitter.emit(`downloadFinished ${index}`, "Event occurred");
+        downloadedq.push(link)
+        eventEmitter.emit(`downloadFinished ${index}`, index);
     });
 }
 
@@ -131,25 +171,40 @@ async function gpStart() {
     })
     status = 'STARTED'
     db.collection(partyID).doc("Guest Picks").collection('Queue')
-    .onSnapshot(function(doc) {
-        console.log("Current data: ", doc.data());
-    });
+        .onSnapshot(function (snapshot) {
+            snapshot.docChanges().forEach(function (change) {
+                if (change.type === "added") {
+                    console.log("New Song: ", change.doc.data());
+                    gpAdd(change.doc.data().url, change.doc._delegate._document.key.path.segments[8])
+                }
+                if (change.type === "removed") {
+                    console.log("Removed Song: ", change.doc.data());
+                }
+            });
+        });
+
     // await gpAdd('https://www.youtube.com/watch?v=LY39km8rkWY&list=PL2L0EVHlfS_LgbikIUg3O6rJ6b-T0EPjq&index=3')
     // await gpAdd('https://www.youtube.com/watch?v=w0AOGeqOnFY')
     // await gpAdd('https://www.youtube.com/watch?v=LDU_Txk06tM')
     var downloadingStatus = "WAITING"
-    for (index = 0; index < q.length; index++) {
+    var index = 0;
+    // for (index = 0; index < q.length; index++) {
+    while (true) {
         if (status != 'STARTED') {
             console.info('Stopped Status, Stopping Function.')
             return 'Stopped by DJ';
         }
-        await gpMain(index, downloadingStatus).then(() => {
-            console.log('Song Done!')
-        })
+        if (index < q.length) {
+            await gpMain(index, downloadingStatus).then(() => {
+                console.log('Song Done!')
+                index = index + 1
+        })} else {
+            await sleep(1000);
+        }
     }
 }
 
-const gpMain = async (index, downloadingStatus) => {
+async function gpMain(index, downloadingStatus) {
     if (status != 'STARTED') {
         console.error('Status: STOPPED')
         return 'Stopped by DJ';
@@ -160,11 +215,11 @@ const gpMain = async (index, downloadingStatus) => {
             return 'Stopped by DJ';
         })
         downloadingStatus = "DOWNLOADING"
-        await gpDownload(q[index].url, index)
-        eventEmitter.on(`downloadFinished ${index}`, async () => {
+         gpDownload(q[index].url, index)
+        eventEmitter.on(`downloadFinished ${index}`, async (i) => {
             downloadingStatus = "PLAYING"
-            console.log(`calling play from test ${index}`)
-            await gpPlay(20, index)
+            console.log(`Playing Index ${index}, From ${i}`)
+            await gpPlay(20, i)
             resolve('Done')
         })
     })
