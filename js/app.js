@@ -5,21 +5,24 @@ const electron = require('electron')
 const ipcRenderer = electron.ipcRenderer;
 const BrowserWindow = electron.remote.BrowserWindow
 const path = require('path')
-
+const Config = require('electron-store');
 //--------------------
 // Guest Picks Packages
 var Soundplayer = require('play-sound')(opts = {})
 const ytdl = require('youtube-mp3-downloader');
 const fs = require('fs')
 const EventEmitter = require('events');
-var getYoutubeTitle = require('get-youtube-title')
+const yts = require('yt-search')
 
 
 //--------------------
 // CODE
 //--------------------
 //
-//
+// GENERAL
+
+const config = new Config()
+
 // GUEST PICKS
 
 class Song {
@@ -27,6 +30,13 @@ class Song {
         this.url = url
         this.progressDiv = probarDiv
         this.docName = docName
+    }
+}
+
+class DownloadSong {
+    constructor(url, i) {
+        this.url = url;
+        this.i = i;
     }
 }
 
@@ -39,7 +49,7 @@ var partyID = '053467'
 
 function sleep(ms) {
     return new Promise((resolve) => {
-      setTimeout(resolve, ms);
+        setTimeout(resolve, ms);
     });
 }
 
@@ -48,40 +58,46 @@ function arrayContains(needle, haystack) {
 }
 
 async function gpAdd(url, docName) {
-        console.info(`Adding ${url} to Playing Queue...`)
-        var probar = document.createElement("div")
-        q.push(new Song(url, probar, docName))
+    console.info(`Adding ${url} to Playing Queue...`)
+    var probar = document.createElement("div")
+    q.push(new Song(url, probar, docName))
 
-        var main = document.getElementById('gpcolumn')
-        var song = document.createElement("div")
-        var songname = document.createElement("p")
-        var deletei = document.createElement('i')
-        
-        songname.innerText = '--'
+    var main = document.getElementById('gpcolumn')
+    var song = document.createElement("div")
+    var songname = document.createElement("p")
+    var deletei = document.createElement('i')
 
-        song.className = "song"
-        deletei.className = "fas fa-trash";
-        deletei.onclick = () => {
-            db.collection(partyID).doc('Guest Picks').collection('Queue').doc(docName).delete().then(() => {
-                console.log(`Succesfully Deleted ${url}!`)
-                q.splice(docName, 1)
-                song.remove()
-            })
-        }
-        probar.className = 'probar'
-        song.appendChild(songname)
-        song.appendChild(deletei)
-        song.appendChild(probar)
-        console.log('Added Probar')
-        main.appendChild(song)
+    songname.innerText = '--'
 
-        var vidRaw = `?${url.split('?')[1]}`
-        var v = new URLSearchParams(vidRaw).get('v');
-
-        getYoutubeTitle(v, function (err, title) {
-            vidTitle = title
-            songname.innerText = vidTitle;
+    song.className = "song"
+    deletei.className = "fas fa-trash";
+    deletei.onclick = () => {
+        db.collection(partyID).doc('Guest Picks').collection('Queue').doc(docName).delete().then(() => {
+            console.log(`Succesfully Deleted ${url}!`)
+            q.splice(docName, 1)
+            song.remove()
         })
+    }
+    probar.className = 'probar'
+    song.appendChild(songname)
+    song.appendChild(deletei)
+    song.appendChild(probar)
+    console.log('Added Probar')
+    main.appendChild(song)
+
+    var vidRaw = `?${url.split('?')[1]}`
+    var v = new URLSearchParams(vidRaw).get('v');
+
+    var videoInfo = await yts({ videoId: v })
+    // yt.retrieve(v, function (err, videoInfo) {
+    //     if (err) throw err
+    //     vidTitle = videoInfo.title
+    //     console.log(videoInfo)
+    //     songname.innerText = vidTitle;
+    // })
+    vidTitle = videoInfo.title
+    console.log(videoInfo)
+    songname.innerText = vidTitle;
 }
 
 function gpAddDb(songList) {
@@ -92,21 +108,21 @@ function gpAddDb(songList) {
                 url: s,
                 submitter: "DJ"
             })
-            .then(function() {
-                console.log("Document successfully written!");
-                db.collection(partyID).doc('Guest Picks').update({
-                    currentDocName: firebase.firestore.FieldValue.increment(1)
+                .then(function () {
+                    console.log("Document successfully written!");
+                    db.collection(partyID).doc('Guest Picks').update({
+                        currentDocName: firebase.firestore.FieldValue.increment(1)
+                    });
+                })
+                .catch(function (error) {
+                    console.error("Error writing document: ", error);
                 });
-            })
-            .catch(function(error) {
-                console.error("Error writing document: ", error);
-            });
         })
     })
 }
 
 async function gpPlay(time, index) {
-    if (downloadedq.length - 1 < index) return Error('Did not download requested song index')
+    // if (downloadedq.length - 1 < index) return Error('Did not download requested song index')
     console.info(`Playing ${index}.mp3...`)
     return new Promise(async (resolve) => {
         var songInstance = Soundplayer.play(`./music/${index}.mp3`, function (err) {
@@ -131,9 +147,10 @@ async function gpPlay(time, index) {
 }
 
 async function gpDownload(link, index) {
-    if (downloadedq.includes(link)) {
-        var cachei = await arrayContains(link, downloadedq)
-        eventEmitter.emit(`downloadFinished ${index}`, cachei);
+    if (downloadedq.map(a => a.url).includes(link)) {
+        var linkMap = await downloadedq.map(a => a.url)
+        var cachei = await arrayContains(link, linkMap)
+        eventEmitter.emit(`downloadFinished ${index}`, downloadedq[cachei].i);
         return 'Already Downloaded'
     }
     console.info(`Downloading ${link}, index ${index}...`)
@@ -156,7 +173,7 @@ async function gpDownload(link, index) {
         if (err) console.error(err)
         probar.style.width = "0%"
         console.info('Downloaded: \n', JSON.stringify(data));
-        downloadedq.push(link)
+        downloadedq.push(new DownloadSong(link, index))
         eventEmitter.emit(`downloadFinished ${index}`, index);
     });
 }
@@ -170,19 +187,6 @@ async function gpStart() {
         return 'Stopped by DJ';
     })
     status = 'STARTED'
-    db.collection(partyID).doc("Guest Picks").collection('Queue')
-        .onSnapshot(function (snapshot) {
-            snapshot.docChanges().forEach(function (change) {
-                if (change.type === "added") {
-                    console.log("New Song: ", change.doc.data());
-                    gpAdd(change.doc.data().url, change.doc._delegate._document.key.path.segments[8])
-                }
-                if (change.type === "removed") {
-                    console.log("Removed Song: ", change.doc.data());
-                }
-            });
-        });
-
     // await gpAdd('https://www.youtube.com/watch?v=LY39km8rkWY&list=PL2L0EVHlfS_LgbikIUg3O6rJ6b-T0EPjq&index=3')
     // await gpAdd('https://www.youtube.com/watch?v=w0AOGeqOnFY')
     // await gpAdd('https://www.youtube.com/watch?v=LDU_Txk06tM')
@@ -198,7 +202,8 @@ async function gpStart() {
             await gpMain(index, downloadingStatus).then(() => {
                 console.log('Song Done!')
                 index = index + 1
-        })} else {
+            })
+        } else {
             await sleep(1000);
         }
     }
@@ -215,7 +220,7 @@ async function gpMain(index, downloadingStatus) {
             return 'Stopped by DJ';
         })
         downloadingStatus = "DOWNLOADING"
-         gpDownload(q[index].url, index)
+        gpDownload(q[index].url, index)
         eventEmitter.on(`downloadFinished ${index}`, async (i) => {
             downloadingStatus = "PLAYING"
             console.log(`Playing Index ${index}, From ${i}`)
@@ -234,10 +239,42 @@ function skip() {
     eventEmitter.emit('skip', "Event occurred");
 }
 
+var gpuseval = 0
+
+function gpUse() {
+    if (gpuseval == 0) {
+        gpuseval = 1
+        document.getElementById('startGuestPicks').style = 'display: block;'
+        document.getElementById('useGuestPicks').value = 'UNHAND'
+        document.getElementById('gpqueuediv').style = 'display: block;'
+
+        db.collection(partyID).doc("Guest Picks").collection('Queue')
+            .onSnapshot(function (snapshot) {
+                snapshot.docChanges().forEach(function (change) {
+                    if (change.type === "added") {
+                        console.log("New Song: ", change.doc.data());
+                        gpAdd(change.doc.data().url, change.doc._delegate._document.key.path.segments[8])
+                    }
+                    if (change.type === "removed") {
+                        console.log("Removed Song: ", change.doc.data());
+                    }
+                });
+            });
+    } else if (gpuseval == 1) {
+        gpuseval = 0
+        document.getElementById('startGuestPicks').style = 'display: none;'
+        document.getElementById('gpqueuediv').style = 'display: none;'
+        q = []
+        document.getElementById('useGuestPicks').value = 'USE'
+        document.getElementById('gpcolumn').textContent = '';
+    }
+}
+
 function switchButton(switchto) {
     if (switchto == 'stop') {
         gpStartButton.value = 'STOP'
         gpStartButton.style.backgroundColor = 'red'
+        document.getElementById('useGuestPicks').value = 'PAUSE'
         gpStartButton.onclick = function (event) {
             console.log(event);
             stop()
@@ -245,6 +282,7 @@ function switchButton(switchto) {
         }
     } else if (switchto == 'start') {
         gpStartButton.value = 'USE'
+        document.getElementById('useGuestPicks').value = 'UNHAND'
         gpStartButton.style.backgroundColor = 'rgb(24, 24, 24)'
         gpStartButton.onclick = function (event) {
             console.log(event);
@@ -258,12 +296,17 @@ function switchButton(switchto) {
 var addSongWindow = null
 
 var gpStartButton = document.getElementById("startGuestPicks");
+var gpUseButton = document.getElementById("useGuestPicks");
 var gpSkipButton = document.getElementById("skipGuestPicks");
 var gpAddSongButton = document.getElementById("addSongGuestPicks");
 gpStartButton.onclick = (event) => {
     console.log(event);
     gpStart()
     switchButton('stop')
+}
+
+gpUseButton.onclick = () => {
+    gpUse()
 }
 
 gpSkipButton.onclick = () => {

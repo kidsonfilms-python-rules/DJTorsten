@@ -112,7 +112,8 @@
         <i class="fas fa-user-friends fa-2x"></i>
         <h1>Main</h1>
         <p>Guest Picks</p>
-        <input type="submit" value="USE" class="submit" id="startGuestPicks">
+        <input type="submit" value="USE" class="submit" id="useGuestPicks">
+        <input type="submit" value="START" class="submit" id="startGuestPicks" style="display: none;">
       </div>
       <div class="scene-card">
         <i class="fas fa-microphone-stand fa-2x"></i>
@@ -127,7 +128,7 @@
         <input type="submit" value="USE" class="submit" id="start">
       </div>
     </div>
-    <div class="guestpicksqueuediv">
+    <div class="guestpicksqueuediv" id="gpqueuediv" style="display: none;">
       <h1>Guest Picks Queue</h1>
       <div class="row">
         <input type="button" value="Add Song/Playlist" id="addSongGuestPicks">
