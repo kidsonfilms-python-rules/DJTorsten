@@ -1,5 +1,6 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, ipcMain, ipcRenderer } = require('electron')
+const electron = require('electron')
+const { app, BrowserWindow, ipcMain, desktopCapturer } = electron
 const path = require('path')
 
 var mainWindow = null;
@@ -108,17 +109,23 @@ const config = new Config()
 // GUEST PICKS
 
 class Song {
-    constructor(url, probarDiv, docName) {
+    constructor(url, probarDiv, docName, title, author, requester) {
         this.url = url
         this.progressDiv = probarDiv
         this.docName = docName
+        this.title = title
+        this.author = author
+        this.requester = requester
     }
 }
 
 class DownloadSong {
-    constructor(url, i) {
+    constructor(url, i, name, thumbnail, author) {
         this.url = url;
         this.i = i;
+        this.name = name;
+        this.thumbnail = thumbnail;
+        this.author = author
     }
 }
 
@@ -141,7 +148,10 @@ function arrayContains(needle, haystack) {
 
 async function gpAdd(url, docName) {
     console.info(`Adding ${url} to Playing Queue...`)
-    q.push(new Song(url, docName))
+    var vidRaw = `?${url.split('?')[1]}`
+    var v = new URLSearchParams(vidRaw).get('v');
+    var videoInfo = await yts({ videoId: v })
+    q.push(new Song(url, '', docName, videoInfo.title, videoInfo.author.name, 'DJ'))
     mainWindow.webContents.send('gpAdd', {url, docName})
 }
 
@@ -170,7 +180,7 @@ function gpAddDb(songList) {
     })
 }
 
-async function gpPlay(time, index) {
+async function gpPlay(time, index, currentI) {
     // if (downloadedq.length - 1 < index) return Error('Did not download requested song index')
     console.info(`Playing ${index}.mp3...`)
     return new Promise(async (resolve) => {
@@ -179,6 +189,70 @@ async function gpPlay(time, index) {
             console.log("Audio finished");
             resolve()
         });
+
+
+        if (win) {
+            var result = downloadedq.filter(obj => {
+                return obj.i === index
+              })
+              console.log(result)
+            if (q.length - (currentI + 1) < 4) {
+                var queueList = []
+                for (var i = currentI + 1; (q.length - i) > 0; i++) {
+                    queueList.push({
+                        title: q[i].title,
+                        author: q[i].author,
+                        requester: "DJ"
+                    })
+                    console.log(queueList)
+                  }
+                console.log(queueList)
+                data = {
+                    nowPlaying: {
+                        title: result[0].name,
+                        author: result[0].author,
+                        thumbnail: result[0].thumbnail.split('?')[0],
+                        requester: "DJ",
+                        likes: "0"
+                    },
+                    queue: queueList
+                }
+            } else {
+                data = {
+                    nowPlaying: {
+                        title: result[0].name,
+                        author: result[0].author,
+                        thumbnail: result[0].thumbnail.split('?')[0],
+                        requester: "DJ",
+                        likes: "0"
+                    },
+                    queue: [
+                        {
+                                title: q[currentI + 1].title,
+                                author : q[currentI + 1].author,
+                                requester: "DJ"
+                            },
+                        {
+                            title: q[currentI + 2].title,
+                            author : q[currentI + 2].author,
+                            requester: "DJ"
+                            },
+                        {
+                            title: q[currentI + 3].title,
+                            author : q[currentI + 3].author,
+                            requester: "DJ"
+                            },
+                        {
+                            title: q[currentI + 4].title,
+                            author : q[currentI + 4].author,
+                            requester: "DJ"
+                            },
+                    ]
+                }
+            }
+           win.webContents.send('newExternalDisplayData', data)
+        }
+
         eventEmitter.on('stop', () => {
             songInstance.kill()
             resolve()
@@ -223,7 +297,7 @@ async function gpDownload(link, index) {
         if (err) console.error(err)
         mainWindow.webContents.send('setProbarWidth', {link: link, width: "0"})
         console.info('Downloaded: \n', JSON.stringify(data));
-        downloadedq.push(new DownloadSong(link, index))
+        downloadedq.push(new DownloadSong(link, index, data.title, data.thumbnail, data.artist))
         eventEmitter.emit(`downloadFinished ${index}`, index);
     });
 }
@@ -242,6 +316,7 @@ async function gpStart() {
     // await gpAdd('https://www.youtube.com/watch?v=LDU_Txk06tM')
     var downloadingStatus = "WAITING"
     var index = 0;
+    launchExternalDisplay()
     // for (index = 0; index < q.length; index++) {
     while (true) {
         if (status != 'STARTED') {
@@ -276,7 +351,7 @@ async function gpMain(index, downloadingStatus) {
         eventEmitter.on(`downloadFinished ${index}`, async (i) => {
             downloadingStatus = "PLAYING"
             console.log(`Playing Index ${index}, From ${i}`)
-            await gpPlay(20, i)
+            await gpPlay(40, i, index)
             resolve('Done')
         })
     })
@@ -292,7 +367,85 @@ ipcMain.on('stop', () => stop())
 function skip() {
     eventEmitter.emit('skip', "Event occurred");
 }
-ipcRenderer.on('skip', () => skip())
+ipcMain.on('skip', () => skip())
+
+var choiceExternalDisplay = null
+
+ipcMain.on('choiceExternalDisplay', (e, d) => {
+  console.log(d)
+  choiceExternalDisplay = d
+})
+
+var win = null
+
+function launchExternalDisplay() {
+    if (win) {
+        win.close()
+    }
+    if (choiceExternalDisplay) {
+    var d = choiceExternalDisplay
+    var dchoice = '1'
+    let displays = electron.screen.getAllDisplays()
+    let externalDisplay = displays.find((display) => {
+        console.log(display,": ", display.id, "  ", d)
+      return display.id == d
+    })
+    const { width, height } = externalDisplay.workAreaSize
+    win = new BrowserWindow({ 
+        width: width, 
+        height: height,
+        x: externalDisplay.workArea.x,
+        y: externalDisplay.workArea.y,
+        show: false,
+        webPreferences: {
+            nodeIntegration: true,
+            enableRemoteModule: true
+        }
+      })
+    win.setKiosk(true);
+    win.loadFile(`./windows/externalDisplaysGP/externalDisplayGP${dchoice}.html`)
+    win.show()
+    ipcMain.on('stop', () => {
+        win.close()
+    })
+    }
+}
+
+ipcMain.on('launchExternalDisplay', () => launchExternalDisplay())
+ipcMain.on('newExternalDisplayDataTest', () => {
+    data = {
+        nowPlaying: {
+            title: "Mombasa",
+            author: "2CELLOS",
+            thumbnail: "https://i.ytimg.com/vi/VZbwZlNEeew/hq720.jpg",
+            requester: "DJ",
+            likes: "0"
+        },
+        queue: [
+            {
+                title: "Never Gonna Give You Up",
+                author : "Rick Astley",
+                requester: "DJ"
+            },
+            {
+                title: "Never Gonna Give You Up",
+                author : "Rick Astley",
+                requester: "DJ"
+            },
+            {
+                title: "Never Gonna Give You Up",
+                author : "Rick Astley",
+                requester: "DJ"
+            },
+            {
+                title: "Never Gonna Give You Up",
+                author : "Rick Astley",
+                requester: "DJ"
+            },
+        ]
+    }
+   win.webContents.send('newExternalDisplayData', data)
+})
 
 // var gpStartButton = document.getElementById("startGuestPicks");
 // var gpUseButton = document.getElementById("useGuestPicks");

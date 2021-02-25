@@ -4,14 +4,8 @@
 const electron = require('electron')
 const ipcRenderer = electron.ipcRenderer;
 const BrowserWindow = electron.remote.BrowserWindow
-const path = require('path')
-const Config = require('electron-store');
 //--------------------
 // Guest Picks Packages
-var Soundplayer = require('play-sound')(opts = {})
-const ytdl = require('youtube-mp3-downloader');
-const fs = require('fs')
-const EventEmitter = require('events');
 const yts = require('yt-search')
 
 
@@ -81,7 +75,7 @@ gpAddSongButton.onclick = () => {
         show: false,
     });
 
-    addSongWindow.loadURL(`file://${__dirname}/gpAddSong.html`)
+    addSongWindow.loadURL(`file://${__dirname}/windows/gpAddSong.html`)
 
     addSongWindow.show()
 
@@ -180,7 +174,7 @@ function switchButton(switchto) {
         document.getElementById('useGuestPicks').value = 'PAUSE'
         gpStartButton.onclick = function (event) {
             console.log(event);
-            stop()
+            ipcRenderer.send('stop', 'random shit')
             switchButton('start')
         }
     } else if (switchto == 'start') {

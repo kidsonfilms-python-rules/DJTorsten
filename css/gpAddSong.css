@@ -223,3 +223,20 @@ button {
         background-position: 52% 0%
     }
 }
+
+img {
+    border: 1px solid #ddd; /* Gray border */
+    border-radius: 4px;  /* Rounded border */
+    padding: 5px; /* Some padding */
+    width: 150px; /* Set a small width */
+  }
+
+
+#displayList {
+    height: 60%;
+    /* background-color: lavenderblush; */
+}
+
+.display img:hover {
+  width: 160px;
+}
