@@ -2,6 +2,30 @@ const electron = require('electron')
 const ipcRenderer = electron.ipcRenderer;
 const BrowserWindow = electron.remote.BrowserWindow
 const onChange = require('on-change');
+var fs = require('fs');
+
+var files = fs.readdirSync('./music/');
+console.log(files)
+const fi = files.indexOf('Rick Astley - Never Gonna Give You Up (Video).mp3');
+if (fi > -1) {
+  files.splice(fi, 1);
+}
+const clearCacheButton = document.getElementById('clearMusicCacheGPButton')
+console.log(files)
+if (files.length == 0) {
+    clearCacheButton.disabled = true;
+    tippy('#clearCacheProxy', {
+        duration: 0,
+        arrow: true,
+        content: 'Cache is Clear!',
+        offset: [0,-265],
+        inertia: true,
+        animation:'perspective',
+      });
+}
+
+
+var externalDisplayButton = document.getElementById('externalDisplayButton')
 
 var savedData = {
     general: {
@@ -53,6 +77,7 @@ if (savedData.general.karaoke) {
 }
 if (savedData.guestPicks.externalDisplay) {
     externalDisplayToggle.checked = true
+    externalDisplayButton.style.display = 'block'
 }
 if (savedData.guestPicks.songLength.random) {
     randomTimeRadio.checked = true
@@ -132,29 +157,29 @@ saveButton.addEventListener("click", () => {
     unsavedModal.style.display = 'none'
 })
 
-document.addEventListener("keydown", function(e) {
-    if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)  && e.keyCode == 83) {
-      e.preventDefault();
-      // Process the event here (such as click on submit button)
-      savedData = {
-        general: {
-            guestPicks: currentData.general.guestPicks,
-            karaoke: currentData.general.karaoke
-        },
-        guestPicks: {
-            externalDisplay: currentData.guestPicks.externalDisplay,
-            songLength: {
-                random: currentData.guestPicks.songLength.random,
-                range1: currentData.guestPicks.songLength.range1,
-                range2: currentData.guestPicks.songLength.range2,
+document.addEventListener("keydown", function (e) {
+    if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey) && e.keyCode == 83) {
+        e.preventDefault();
+        // Process the event here (such as click on submit button)
+        savedData = {
+            general: {
+                guestPicks: currentData.general.guestPicks,
+                karaoke: currentData.general.karaoke
+            },
+            guestPicks: {
+                externalDisplay: currentData.guestPicks.externalDisplay,
+                songLength: {
+                    random: currentData.guestPicks.songLength.random,
+                    range1: currentData.guestPicks.songLength.range1,
+                    range2: currentData.guestPicks.songLength.range2,
+                }
             }
         }
+        unsavedModal.style.display = 'none'
     }
-    unsavedModal.style.display = 'none'
-    }
-  }, false);
+}, false);
 
-var externalDisplayButton = document.getElementById('externalDisplayButton')
+
 externalDisplayToggle.addEventListener('change', (e) => {
     currentData.guestPicks.externalDisplay = externalDisplayToggle.checked
     if (externalDisplayToggle.checked) {
@@ -262,3 +287,80 @@ karaokeToggle.addEventListener('change', () => {
         unsavedModal.style.display = 'flex'
     }
 })
+
+const button = document.getElementById('shareButton');
+const sendButton = document.querySelector('.shareModal__submit');
+const modal = document.getElementById('share-modal')
+
+button.addEventListener('click', () => {
+    modal.classList.toggle('share-modal--open');
+    console.log(modal)
+    modal.classList.toggle('share-modal--close');
+
+})
+
+var getHTML = function (url, callback) {
+
+    // Feature detection
+    if (!window.XMLHttpRequest) return;
+
+    // Create new request
+    var xhr = new XMLHttpRequest();
+
+    // Setup callback
+    xhr.onload = function () {
+        if (callback && typeof (callback) === 'function') {
+            callback(this.responseXML);
+        }
+    }
+
+    // Get the HTML
+    xhr.open('GET', url);
+    xhr.responseType = 'document';
+    xhr.send();
+
+};
+
+
+
+function shareTwitter() {
+    electron.shell.openExternal("http://twitter.com/share?text=Join My DJFlame Party! The Party Code is 053467&url=http://github.com&hashtags=djflame,party,partyatmyplace")
+}
+
+function shareFacebook() {
+    electron.shell.openExternal('http://www.facebook.com/sharer.php?u=https%3A%2F%2Fgithub.com')
+}
+
+function shareReddit() {
+    electron.shell.openExternal("http://www.reddit.com/submit?title=Join%20My%20DJFlame%20Party!&text=The%20Party%20Code%20is:%20**053467**%20or%20Use%20(this%20Link)[https://github.com]!")
+}
+
+function sharePrint() {
+    getHTML('./windows/sharePrint.html', function (response) {
+        var element = response.documentElement
+        html2pdf(element);
+    });
+}
+
+document.getElementById("clickToCopyShareURL").onclick = function () {
+    this.select();
+    document.execCommand('copy');
+    window.getSelection().removeAllRanges();
+    document.getElementById("clickToCopyShareURL").style.backgroundColor = '#00b530'
+    setTimeout(() => {
+        document.getElementById("clickToCopyShareURL").style.backgroundColor = 'transparent'
+    }, 1000);
+}
+
+document.getElementById("clickToCopyShareURL").addEventListener('select', function() {
+    this.selectionStart = this.selectionEnd;
+  }, false);
+
+$('#share-modal').on('click', function(e) {
+    if (e.target !== e.currentTarget)
+      return;
+    
+      modal.classList.toggle('share-modal--open');
+      console.log(modal)
+      modal.classList.toggle('share-modal--close');
+  });
