@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "electron-store": "^7.0.2",
-    "firebase": "^8.2.6",
+    "firebase": "^8.2.9",
     "node-mp3-player": "^1.0.3",
     "on-change": "^2.2.3",
     "play-sound": "^1.1.3",
