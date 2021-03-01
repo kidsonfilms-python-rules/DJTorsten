@@ -32,6 +32,15 @@ class Song {
     }
 }
 
+function testingWhileDBIsBroken() {
+    ipcRenderer.send('gpAdd', {url: 'https://www.youtube.com/watch?v=zVlFkFmk_NM', docName: '0'})
+    ipcRenderer.send('gpAdd', {url: 'https://www.youtube.com/watch?v=6yvfU8xK_VQ', docName: '1'})
+    ipcRenderer.send('gpAdd', {url: 'https://www.youtube.com/watch?v=9SdSfbatWqw', docName: '2'})
+    ipcRenderer.send('gpAdd', {url: 'https://www.youtube.com/watch?v=69CEiHfS_mc', docName: '3'})
+    ipcRenderer.send('gpAdd', {url: 'https://www.youtube.com/watch?v=2AeEd195SG8"', docName: '4'})
+}
+
+
 var gpStartButton = document.getElementById("startGuestPicks");
 var gpUseButton = document.getElementById("useGuestPicks");
 var gpSkipButton = document.getElementById("skipGuestPicks");
@@ -144,19 +153,20 @@ function gpUse() {
         document.getElementById('startGuestPicks').style = 'display: block;'
         document.getElementById('useGuestPicks').value = 'UNHAND'
         document.getElementById('gpqueuediv').style = 'display: block;'
-
-        db.collection(partyID).doc("Guest Picks").collection('Queue')
-            .onSnapshot(function (snapshot) {
-                snapshot.docChanges().forEach(function (change) {
-                    if (change.type === "added") {
-                        console.log("New Song: ", change.doc.data());
-                        ipcRenderer.send('gpAdd', {url: change.doc.data().url, docName: change.doc._delegate._document.key.path.segments[8]})
-                    }
-                    if (change.type === "removed") {
-                        console.log("Removed Song: ", change.doc.data());
-                    }
-                });
-            });
+        // testingWhileDBIsBroken()
+        // db.collection(partyID).doc("Guest Picks").collection('Queue')
+        //     .onSnapshot(function (snapshot) {
+        //         snapshot.docChanges().forEach(function (change) {
+        //             if (change.type === "added") {
+        //                 console.log("New Song: ", change.doc.data());
+        //                 ipcRenderer.send('gpAdd', {url: change.doc.data().url, docName: change.doc._delegate._document.key.path.segments[8]})
+        //             }
+        //             if (change.type === "removed") {
+        //                 console.log("Removed Song: ", change.doc.data());
+        //             }
+        //         });
+        //     });
+        ipcRenderer.send('gpUse', 'Start')
     } else if (gpuseval == 1) {
         gpuseval = 0
         document.getElementById('startGuestPicks').style = 'display: none;'

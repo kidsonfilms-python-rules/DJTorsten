@@ -210,7 +210,7 @@ async function gpPlay(time, index, currentI) {
                 data = {
                     nowPlaying: {
                         title: result[0].name,
-                        author: result[0].author,
+                        author: q[currentI].author,
                         thumbnail: result[0].thumbnail.split('?')[0],
                         requester: "DJ",
                         likes: "0"
@@ -221,7 +221,7 @@ async function gpPlay(time, index, currentI) {
                 data = {
                     nowPlaying: {
                         title: result[0].name,
-                        author: result[0].author,
+                        author: q[currentI].author,
                         thumbnail: result[0].thumbnail.split('?')[0],
                         requester: "DJ",
                         likes: "0"
@@ -402,7 +402,7 @@ function launchExternalDisplay() {
             enableRemoteModule: true
         }
       })
-    win.setKiosk(true);
+    // win.setKiosk(true);
     win.loadFile(`./windows/externalDisplaysGP/externalDisplayGP${dchoice}.html`)
     win.show()
     ipcMain.on('stop', () => {
@@ -447,6 +447,20 @@ ipcMain.on('newExternalDisplayDataTest', () => {
    win.webContents.send('newExternalDisplayData', data)
 })
 
+ipcMain.on('gpUse', () => {
+    db.collection(partyID).doc("Guest Picks").collection('Queue')
+            .onSnapshot(function (snapshot) {
+                snapshot.docChanges().forEach(function (change) {
+                    if (change.type === "added") {
+                        console.log("New Song: ", change.doc.data());
+                        gpAdd(change.doc.data().url, change.doc._delegate._document.key.path.segments[8])
+                    }
+                    if (change.type === "removed") {
+                        console.log("Removed Song: ", change.doc.data());
+                    }
+                });
+            });
+})
 // var gpStartButton = document.getElementById("startGuestPicks");
 // var gpUseButton = document.getElementById("useGuestPicks");
 // var gpSkipButton = document.getElementById("skipGuestPicks");
