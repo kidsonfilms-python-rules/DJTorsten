@@ -12,7 +12,7 @@
   "author": "Siddharth Ray",
   "license": "READ LICENSE.md",
   "devDependencies": {
-    "electron": "^11.2.3"
+    "electron": "^11.3.0"
   },
   "testEnvironment": "node",
   "dependencies": {
