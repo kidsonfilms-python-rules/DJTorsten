@@ -23,6 +23,6 @@
     "play-sound": "^1.1.3",
     "youtube-mp3-downloader": "^0.7.6",
     "yt-search": "^2.7.3",
-    "ytdl-core": "^4.4.5"
+    "ytdl-core": "^4.5.0"
   }
 }
