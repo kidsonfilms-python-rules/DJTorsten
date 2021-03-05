@@ -24,38 +24,16 @@ if (files.length == 0) {
       });
 }
 
+var savedData;
+var currentData;
 
-var externalDisplayButton = document.getElementById('externalDisplayButton')
+ipcRenderer.send('requestSceneSettings', '')
+ipcRenderer.on('requestedSceneSettings' , (e, sceneSettings) => {
+    console.log(sceneSettings)
+    savedData = JSON.parse(JSON.stringify(sceneSettings));
+    currentData = JSON.parse(JSON.stringify(sceneSettings));
 
-var savedData = {
-    general: {
-        guestPicks: true,
-        karaoke: false
-    },
-    guestPicks: {
-        externalDisplay: true,
-        songLength: {
-            random: false,
-            range1: 22,
-            range2: 22,
-        }
-    }
-}
-var currentData = {
-    general: {
-        guestPicks: true,
-        karaoke: false
-    },
-    guestPicks: {
-        externalDisplay: true,
-        songLength: {
-            random: false,
-            range1: 22,
-            range2: 22,
-        }
-    }
-}
-var unsavedModal = document.getElementById('unsavedModal')
+    var unsavedModal = document.getElementById('unsavedModal')
 
 
 var guestPicksToggle = document.getElementById('guestPicks')
@@ -66,8 +44,6 @@ var randomTimeRadio = document.getElementById('randomTime-option')
 var toText = document.getElementById('toText')
 var range2 = document.getElementById('number-2')
 var range1 = document.getElementById('number-1')
-var resetButton = document.getElementById('resetSettings')
-var saveButton = document.getElementById('saveSettings')
 
 if (savedData.general.guestPicks) {
     guestPicksToggle.checked = true
@@ -92,6 +68,35 @@ if (savedData.guestPicks.songLength.random) {
     range1.value = savedData.guestPicks.songLength.range1
     range2.value = savedData.guestPicks.songLength.range2
 }
+})
+
+
+var resetButton = document.getElementById('resetSettings')
+var saveButton = document.getElementById('saveSettings')
+var externalDisplayButton = document.getElementById('externalDisplayButton')
+var guestPicksToggle = document.getElementById('guestPicks')
+var karaokeToggle = document.getElementById('karaoke')
+var externalDisplayToggle = document.getElementById('externalDisplayToggle')
+var setTimeRadio = document.getElementById('setTime-option')
+var randomTimeRadio = document.getElementById('randomTime-option')
+var toText = document.getElementById('toText')
+var range2 = document.getElementById('number-2')
+var range1 = document.getElementById('number-1')
+
+// var savedData = {
+//     general: {
+//         guestPicks: true,
+//         karaoke: false
+//     },
+//     guestPicks: {
+//         externalDisplay: true,
+//         songLength: {
+//             random: false,
+//             range1: 22,
+//             range2: 22,
+//         }
+//     }
+// }
 
 resetButton.addEventListener("click", () => {
     currentData = {
@@ -137,6 +142,7 @@ resetButton.addEventListener("click", () => {
         range2.value = savedData.guestPicks.songLength.range2
     }
     unsavedModal.style.display = 'none'
+    unsavedModal.style.visibility = 'hidden'
 })
 
 saveButton.addEventListener("click", () => {
@@ -155,6 +161,8 @@ saveButton.addEventListener("click", () => {
         }
     }
     unsavedModal.style.display = 'none'
+    unsavedModal.style.visibility = 'hidden'
+    ipcRenderer.send('sceneSettingsChange', savedData)
 })
 
 document.addEventListener("keydown", function (e) {
@@ -176,6 +184,7 @@ document.addEventListener("keydown", function (e) {
             }
         }
         unsavedModal.style.display = 'none'
+        unsavedModal.style.visibility = 'hidden'
     }
 }, false);
 
@@ -190,8 +199,10 @@ externalDisplayToggle.addEventListener('change', (e) => {
 
     if (JSON.stringify(currentData) == JSON.stringify(savedData)) {
         unsavedModal.style.display = 'none'
+        unsavedModal.style.visibility = 'hidden'
     } else {
         unsavedModal.style.display = 'flex'
+        unsavedModal.style.visibility = 'visible'
     }
 })
 
@@ -238,8 +249,10 @@ setTimeRadio.addEventListener('click', () => {
     currentData.guestPicks.songLength.random = false
     if (JSON.stringify(currentData) == JSON.stringify(savedData)) {
         unsavedModal.style.display = 'none'
+        unsavedModal.style.visibility = 'hidden'
     } else {
         unsavedModal.style.display = 'flex'
+        unsavedModal.style.visibility = 'visible'
     }
 })
 
@@ -249,8 +262,10 @@ randomTimeRadio.addEventListener('click', () => {
     currentData.guestPicks.songLength.random = true
     if (JSON.stringify(currentData) == JSON.stringify(savedData)) {
         unsavedModal.style.display = 'none'
+        unsavedModal.style.visibility = 'hidden'
     } else {
         unsavedModal.style.display = 'flex'
+        unsavedModal.style.visibility = 'visible'
     }
 })
 
@@ -258,16 +273,20 @@ range1.addEventListener('change', () => {
     currentData.guestPicks.songLength.range1 = parseInt(range1.value, 10)
     if (JSON.stringify(currentData) == JSON.stringify(savedData)) {
         unsavedModal.style.display = 'none'
+        unsavedModal.style.visibility = 'hidden'
     } else {
         unsavedModal.style.display = 'flex'
+        unsavedModal.style.visibility = 'visible'
     }
 })
 range2.addEventListener('change', () => {
     currentData.guestPicks.songLength.range2 = parseInt(range2.value, 10)
     if (JSON.stringify(currentData) == JSON.stringify(savedData)) {
         unsavedModal.style.display = 'none'
+        unsavedModal.style.visibility = 'hidden'
     } else {
         unsavedModal.style.display = 'flex'
+        unsavedModal.style.visibility = 'visible'
     }
 })
 
@@ -275,16 +294,20 @@ guestPicksToggle.addEventListener('change', () => {
     currentData.general.guestPicks = guestPicksToggle.checked
     if (JSON.stringify(currentData) == JSON.stringify(savedData)) {
         unsavedModal.style.display = 'none'
+        unsavedModal.style.visibility = 'hidden'
     } else {
         unsavedModal.style.display = 'flex'
+        unsavedModal.style.visibility = 'visible'
     }
 })
 karaokeToggle.addEventListener('change', () => {
     currentData.general.karaoke = karaokeToggle.checked
     if (JSON.stringify(currentData) == JSON.stringify(savedData)) {
         unsavedModal.style.display = 'none'
+        unsavedModal.style.visibility = 'hidden'
     } else {
         unsavedModal.style.display = 'flex'
+        unsavedModal.style.visibility = 'visible'
     }
 })
 

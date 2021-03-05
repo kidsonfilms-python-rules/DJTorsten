@@ -256,8 +256,11 @@ main {
     border-radius: 10px;
     text-align: center;
     display: inline-grid;
-    border-style: solid;
-    border-color: #dadadabb;
+    /* border-style: solid;
+    border-color: #dadadabb; */
+    box-shadow: 20px 20px 20px rgb(26, 26, 26);
+    transition: box-shadow 0.3s ease-in-out;
+
 }
 
 .scene-card:hover i{
@@ -270,6 +273,10 @@ main {
 
 .scene-card:hover h1 {
     color: #df49a6;
+}
+
+.scene-card:hover {
+  box-shadow: 30px 30px 20px rgb(26, 26, 26);
 }
 
 .scene-card h1 {
@@ -549,6 +556,7 @@ button:disabled {
 
 .dd-input + .dd-menu {
   display: none;
+  visibility: hidden
 } 
 
 .dd-input:checked + .dd-menu {
@@ -716,6 +724,7 @@ input[type=number] {
         -ms-user-select: none; 
             user-select: none;
   display: none;
+  visibility: hidden;
   animation:fadein .5s;
 }
 
@@ -774,6 +783,7 @@ input[type=number] {
 }
 .lt-ie9 .share-modal {
   display: none;
+  visibility: hidden;
 }
 .share-modal .share-body {
   position: relative;

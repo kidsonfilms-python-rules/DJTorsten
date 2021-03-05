@@ -106,6 +106,71 @@ var db = firebase.firestore();
 
 const config = new Config()
 
+config.set('devSaveDB', true)
+
+
+if (!config.get('devSaveDB')) {
+db.collection('053467').doc('metadata').get().then((doc) => {
+    if (doc.exists) {
+        console.log("Document data:", doc.data());
+        var data = doc.data()
+        config.set('sceneSettings', {
+            general: {
+                guestPicks: data.guestPicks,
+                karaoke: data.karaoke
+            },
+            guestPicks: {
+                externalDisplay: data.guestPicksExternalDisplay,
+                songLength: {
+                    random: data.guestPicksSongLenRandom,
+                    range1: data.guestPicksSongLenRange1,
+                    range2: data.guestPicksSongLenRange2,
+                }
+            }
+        })
+        console.log(config.get('sceneSettings'))
+    } else {
+        // doc.data() will be undefined in this case
+        console.log("No such document!");
+    }
+}).catch((error) => {
+    console.log("Error getting document:", error);
+});
+} else {
+    console.log('Entering Developer Database Saving Mode...')
+    config.set('sceneSettings', {
+        general: {
+            guestPicks: true,
+            karaoke: false
+        },
+        guestPicks: {
+            externalDisplay: true,
+            songLength: {
+                random: true,
+                range1: 22,
+                range2: 44,
+            }
+        }
+    })
+}
+
+ipcMain.on('sceneSettingsChange', (e, data) => {
+    // console.log(data)
+    config.set('sceneSettings', data)
+    db.collection('053467').doc('metadata').set({
+        guestPicks: data.general.guestPicks,
+        guestPicksExternalDisplay: data.guestPicks.externalDisplay,
+        guestPicksSongLenRandom: data.guestPicks.songLength.random,
+        guestPicksSongLenRange1: data.guestPicks.songLength.range1,
+        guestPicksSongLenRange2: data.guestPicks.songLength.range2,
+        karaoke: data.general.karaoke
+    })
+})
+
+ipcMain.on('requestSceneSettings', () => {
+    mainWindow.webContents.send('requestedSceneSettings', config.get('sceneSettings'))
+})
+
 // GUEST PICKS
 
 class Song {
