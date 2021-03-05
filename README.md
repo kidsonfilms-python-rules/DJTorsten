@@ -1,5 +1,5 @@
-# DJTorsten
-DJTorsten is a AI Powered DJ that can play music and control lights.
+# DJFlame
+DJFlame is a AI Powered DJ that can play music and control lights.
 
 
 ## Build status

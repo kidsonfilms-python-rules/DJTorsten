@@ -513,6 +513,7 @@ ipcMain.on('newExternalDisplayDataTest', () => {
 })
 
 ipcMain.on('gpUse', () => {
+    if (!config.get('devSaveDB')) {
     db.collection(partyID).doc("Guest Picks").collection('Queue')
             .onSnapshot(function (snapshot) {
                 snapshot.docChanges().forEach(function (change) {
@@ -524,7 +525,18 @@ ipcMain.on('gpUse', () => {
                         console.log("Removed Song: ", change.doc.data());
                     }
                 });
-            });
+            }); } else {
+                gpAdd('https://www.youtube.com/watch?v=xOD4jR7zsjc', 0)
+                gpAdd('https://www.youtube.com/watch?v=xOD4jR7zsjc', 1)
+                gpAdd('https://www.youtube.com/watch?v=xOD4jR7zsjc', 2)
+                gpAdd('https://www.youtube.com/watch?v=69CEiHfS_mc', 3)
+                gpAdd('https://www.youtube.com/watch?v=69CEiHfS_mc', 4)
+                gpAdd('https://www.youtube.com/watch?v=69CEiHfS_mc', 5)
+                gpAdd('https://www.youtube.com/watch?v=6yvfU8xK_VQ', 6)
+                gpAdd('https://www.youtube.com/watch?v=6yvfU8xK_VQ', 7)
+                gpAdd('https://www.youtube.com/watch?v=6yvfU8xK_VQ', 8)
+                gpAdd('https://music.youtube.com/watch?v=zVlFkFmk_NM&list=RDAMVMzVlFkFmk_NM', 9)
+            }
 })
 // var gpStartButton = document.getElementById("startGuestPicks");
 // var gpUseButton = document.getElementById("useGuestPicks");
