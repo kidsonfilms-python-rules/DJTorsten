@@ -6,52 +6,53 @@ const path = require('path')
 var mainWindow = null;
 
 function createWindow() {
-  // Create the browser window.
-  mainWindow = new BrowserWindow({
-    width: 1000,
-    height: 750,
-    show: false,
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
-      nodeIntegration: true,
-      contextIsolation: false,
-      enableRemoteModule: true
-    }
-  })
-  // and load the index.html of the app.
-  mainWindow.loadFile('signin.html')
-  mainWindow.show()
+    // Create the browser window.
+    mainWindow = new BrowserWindow({
+        width: 1000,
+        height: 750,
+        show: false,
+        webPreferences: {
+            preload: path.join(__dirname, 'preload.js'),
+            nodeIntegration: true,
+            contextIsolation: false,
+            enableRemoteModule: true
+        }
+    })
+    // and load the index.html of the app.
+    mainWindow.loadFile('loading.html').then(() => {
+        mainWindow.show()
+    })
 
-  // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
+    // Open the DevTools.
+    // mainWindow.webContents.openDevTools()
 }
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
-  createWindow()
+    createWindow()
 
-  app.on('activate', function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
-  })
+    app.on('activate', function () {
+        // On macOS it's common to re-create a window in the app when the
+        // dock icon is clicked and there are no other windows open.
+        if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    })
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on('window-all-closed', function () {
-  if (process.platform !== 'darwin') app.quit()
+    if (process.platform !== 'darwin') app.quit()
 })
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 
 ipcMain.on('gpAddSong', (e, songList) => {
-  console.log(songList)
-  gpAddDb(songList)
+    console.log(songList)
+    gpAddDb(songList)
 })
 
 
@@ -107,35 +108,80 @@ var db = firebase.firestore();
 const config = new Config()
 
 config.set('devSaveDB', true)
+if (config.get('devSaveDB')) {
+    config.set('signInInfo', false)
+}
 
+ipcMain.on('emailAuth', (e, data) => {
+    firebase.auth().signInWithEmailAndPassword(data.email, data.pass)
+        .then((userCredential) => {
+            console.log('signed in lol')
+            var user = userCredential.user;
+            config.set('user', user)
+            config.set('signInInfo', {
+                email: data.email,
+                pass: data.pass
+            })
+            mainWindow.webContents.send('signInSuccess')
+        })
+        .catch((error) => {
+            var errorCode = error.code;
+            var errorMessage = error.message;
+            console.log(`${errorCode}: ${errorMessage}`)
+        });
+})
+
+ipcMain.on('attemptAutoSignIn', () => {
+    if (config.get('signInInfo')) {
+        var data = config.get('signInInfo')
+        firebase.auth().signInWithEmailAndPassword(data.email, data.pass)
+            .then((userCredential) => {
+                console.log('signed in lol')
+                var user = userCredential.user;
+                config.set('user', user)
+                config.set('signInInfo', {
+                    email: data.email,
+                    pass: data.pass
+                })
+                mainWindow.webContents.send('signInSuccess')
+            })
+            .catch((error) => {
+                var errorCode = error.code;
+                var errorMessage = error.message;
+                console.log(`${errorCode}: ${errorMessage}`)
+            });
+    } else {
+        mainWindow.webContents.send('signInFail')
+    }
+})
 
 if (!config.get('devSaveDB')) {
-db.collection('053467').doc('metadata').get().then((doc) => {
-    if (doc.exists) {
-        console.log("Document data:", doc.data());
-        var data = doc.data()
-        config.set('sceneSettings', {
-            general: {
-                guestPicks: data.guestPicks,
-                karaoke: data.karaoke
-            },
-            guestPicks: {
-                externalDisplay: data.guestPicksExternalDisplay,
-                songLength: {
-                    random: data.guestPicksSongLenRandom,
-                    range1: data.guestPicksSongLenRange1,
-                    range2: data.guestPicksSongLenRange2,
+    db.collection('053467').doc('metadata').get().then((doc) => {
+        if (doc.exists) {
+            console.log("Document data:", doc.data());
+            var data = doc.data()
+            config.set('sceneSettings', {
+                general: {
+                    guestPicks: data.guestPicks,
+                    karaoke: data.karaoke
+                },
+                guestPicks: {
+                    externalDisplay: data.guestPicksExternalDisplay,
+                    songLength: {
+                        random: data.guestPicksSongLenRandom,
+                        range1: data.guestPicksSongLenRange1,
+                        range2: data.guestPicksSongLenRange2,
+                    }
                 }
-            }
-        })
-        console.log(config.get('sceneSettings'))
-    } else {
-        // doc.data() will be undefined in this case
-        console.log("No such document!");
-    }
-}).catch((error) => {
-    console.log("Error getting document:", error);
-});
+            })
+            console.log(config.get('sceneSettings'))
+        } else {
+            // doc.data() will be undefined in this case
+            console.log("No such document!");
+        }
+    }).catch((error) => {
+        console.log("Error getting document:", error);
+    });
 } else {
     console.log('Entering Developer Database Saving Mode...')
     config.set('sceneSettings', {
@@ -217,11 +263,11 @@ async function gpAdd(url, docName) {
     var v = new URLSearchParams(vidRaw).get('v');
     var videoInfo = await yts({ videoId: v })
     q.push(new Song(url, '', docName, videoInfo.title, videoInfo.author.name, 'DJ'))
-    mainWindow.webContents.send('gpAdd', {url, docName})
+    mainWindow.webContents.send('gpAdd', { url, docName })
 }
 
 ipcMain.on('gpAdd', (event, data) => {
-  gpAdd(data.url, data.docName)
+    gpAdd(data.url, data.docName)
 })
 
 function gpAddDb(songList) {
@@ -259,8 +305,8 @@ async function gpPlay(time, index, currentI) {
         if (win) {
             var result = downloadedq.filter(obj => {
                 return obj.i === index
-              })
-              console.log(result)
+            })
+            console.log(result)
             if (q.length - (currentI + 1) < 4) {
                 var queueList = []
                 for (var i = currentI + 1; (q.length - i) > 0; i++) {
@@ -270,7 +316,7 @@ async function gpPlay(time, index, currentI) {
                         requester: "DJ"
                     })
                     console.log(queueList)
-                  }
+                }
                 console.log(queueList)
                 data = {
                     nowPlaying: {
@@ -293,29 +339,29 @@ async function gpPlay(time, index, currentI) {
                     },
                     queue: [
                         {
-                                title: q[currentI + 1].title,
-                                author : q[currentI + 1].author,
-                                requester: "DJ"
-                            },
+                            title: q[currentI + 1].title,
+                            author: q[currentI + 1].author,
+                            requester: "DJ"
+                        },
                         {
                             title: q[currentI + 2].title,
-                            author : q[currentI + 2].author,
+                            author: q[currentI + 2].author,
                             requester: "DJ"
-                            },
+                        },
                         {
                             title: q[currentI + 3].title,
-                            author : q[currentI + 3].author,
+                            author: q[currentI + 3].author,
                             requester: "DJ"
-                            },
+                        },
                         {
                             title: q[currentI + 4].title,
-                            author : q[currentI + 4].author,
+                            author: q[currentI + 4].author,
                             requester: "DJ"
-                            },
+                        },
                     ]
                 }
             }
-           win.webContents.send('newExternalDisplayData', data)
+            win.webContents.send('newExternalDisplayData', data)
         }
 
         eventEmitter.on('stop', () => {
@@ -353,14 +399,14 @@ async function gpDownload(link, index) {
     });
     DOWNLOADER.on("progress", function (progress) {
         console.log(JSON.stringify(progress));
-        mainWindow.webContents.send('setProbarWidth', {link: link, width: progress.progress.percentage.toString().split('.')[0]})
+        mainWindow.webContents.send('setProbarWidth', { link: link, width: progress.progress.percentage.toString().split('.')[0] })
         // probar.style.width = `${progress.progress.percentage.toString().split('.')[0]}%`
     });
     DOWNLOADER.download(v, `${index}.mp3`)
     DOWNLOADER.on("finished", function (err, data) {
         DOWNLOADER.removeAllListeners("progress")
         if (err) console.error(err)
-        mainWindow.webContents.send('setProbarWidth', {link: link, width: "0"})
+        mainWindow.webContents.send('setProbarWidth', { link: link, width: "0" })
         console.info('Downloaded: \n', JSON.stringify(data));
         downloadedq.push(new DownloadSong(link, index, data.title, data.thumbnail, data.artist))
         eventEmitter.emit(`downloadFinished ${index}`, index);
@@ -399,7 +445,7 @@ async function gpStart() {
     }
 }
 
-ipcMain.on('gpStart' , () => gpStart())
+ipcMain.on('gpStart', () => gpStart())
 
 async function gpMain(index, downloadingStatus) {
     if (status != 'STARTED') {
@@ -437,8 +483,8 @@ ipcMain.on('skip', () => skip())
 var choiceExternalDisplay = null
 
 ipcMain.on('choiceExternalDisplay', (e, d) => {
-  console.log(d)
-  choiceExternalDisplay = d
+    console.log(d)
+    choiceExternalDisplay = d
 })
 
 var win = null
@@ -448,31 +494,31 @@ function launchExternalDisplay() {
         win.close()
     }
     if (choiceExternalDisplay) {
-    var d = choiceExternalDisplay
-    var dchoice = '1'
-    let displays = electron.screen.getAllDisplays()
-    let externalDisplay = displays.find((display) => {
-        console.log(display,": ", display.id, "  ", d)
-      return display.id == d
-    })
-    const { width, height } = externalDisplay.workAreaSize
-    win = new BrowserWindow({ 
-        width: width, 
-        height: height,
-        x: externalDisplay.workArea.x,
-        y: externalDisplay.workArea.y,
-        show: false,
-        webPreferences: {
-            nodeIntegration: true,
-            enableRemoteModule: true
-        }
-      })
-    // win.setKiosk(true);
-    win.loadFile(`./windows/externalDisplaysGP/externalDisplayGP${dchoice}.html`)
-    win.show()
-    ipcMain.on('stop', () => {
-        win.close()
-    })
+        var d = choiceExternalDisplay
+        var dchoice = '1'
+        let displays = electron.screen.getAllDisplays()
+        let externalDisplay = displays.find((display) => {
+            console.log(display, ": ", display.id, "  ", d)
+            return display.id == d
+        })
+        const { width, height } = externalDisplay.workAreaSize
+        win = new BrowserWindow({
+            width: width,
+            height: height,
+            x: externalDisplay.workArea.x,
+            y: externalDisplay.workArea.y,
+            show: false,
+            webPreferences: {
+                nodeIntegration: true,
+                enableRemoteModule: true
+            }
+        })
+        // win.setKiosk(true);
+        win.loadFile(`./windows/externalDisplaysGP/externalDisplayGP${dchoice}.html`)
+        win.show()
+        ipcMain.on('stop', () => {
+            win.close()
+        })
     }
 }
 
@@ -489,32 +535,32 @@ ipcMain.on('newExternalDisplayDataTest', () => {
         queue: [
             {
                 title: "Never Gonna Give You Up",
-                author : "Rick Astley",
+                author: "Rick Astley",
                 requester: "DJ"
             },
             {
                 title: "Never Gonna Give You Up",
-                author : "Rick Astley",
+                author: "Rick Astley",
                 requester: "DJ"
             },
             {
                 title: "Never Gonna Give You Up",
-                author : "Rick Astley",
+                author: "Rick Astley",
                 requester: "DJ"
             },
             {
                 title: "Never Gonna Give You Up",
-                author : "Rick Astley",
+                author: "Rick Astley",
                 requester: "DJ"
             },
         ]
     }
-   win.webContents.send('newExternalDisplayData', data)
+    win.webContents.send('newExternalDisplayData', data)
 })
 
 ipcMain.on('gpUse', () => {
     if (!config.get('devSaveDB')) {
-    db.collection(partyID).doc("Guest Picks").collection('Queue')
+        db.collection(partyID).doc("Guest Picks").collection('Queue')
             .onSnapshot(function (snapshot) {
                 snapshot.docChanges().forEach(function (change) {
                     if (change.type === "added") {
@@ -525,18 +571,19 @@ ipcMain.on('gpUse', () => {
                         console.log("Removed Song: ", change.doc.data());
                     }
                 });
-            }); } else {
-                gpAdd('https://www.youtube.com/watch?v=xOD4jR7zsjc', 0)
-                gpAdd('https://www.youtube.com/watch?v=xOD4jR7zsjc', 1)
-                gpAdd('https://www.youtube.com/watch?v=xOD4jR7zsjc', 2)
-                gpAdd('https://www.youtube.com/watch?v=69CEiHfS_mc', 3)
-                gpAdd('https://www.youtube.com/watch?v=69CEiHfS_mc', 4)
-                gpAdd('https://www.youtube.com/watch?v=69CEiHfS_mc', 5)
-                gpAdd('https://www.youtube.com/watch?v=6yvfU8xK_VQ', 6)
-                gpAdd('https://www.youtube.com/watch?v=6yvfU8xK_VQ', 7)
-                gpAdd('https://www.youtube.com/watch?v=6yvfU8xK_VQ', 8)
-                gpAdd('https://music.youtube.com/watch?v=zVlFkFmk_NM&list=RDAMVMzVlFkFmk_NM', 9)
-            }
+            });
+    } else {
+        gpAdd('https://www.youtube.com/watch?v=xOD4jR7zsjc', 0)
+        gpAdd('https://www.youtube.com/watch?v=xOD4jR7zsjc', 1)
+        gpAdd('https://www.youtube.com/watch?v=xOD4jR7zsjc', 2)
+        gpAdd('https://www.youtube.com/watch?v=69CEiHfS_mc', 3)
+        gpAdd('https://www.youtube.com/watch?v=69CEiHfS_mc', 4)
+        gpAdd('https://www.youtube.com/watch?v=69CEiHfS_mc', 5)
+        gpAdd('https://www.youtube.com/watch?v=6yvfU8xK_VQ', 6)
+        gpAdd('https://www.youtube.com/watch?v=6yvfU8xK_VQ', 7)
+        gpAdd('https://www.youtube.com/watch?v=6yvfU8xK_VQ', 8)
+        gpAdd('https://music.youtube.com/watch?v=zVlFkFmk_NM&list=RDAMVMzVlFkFmk_NM', 9)
+    }
 })
 // var gpStartButton = document.getElementById("startGuestPicks");
 // var gpUseButton = document.getElementById("useGuestPicks");
