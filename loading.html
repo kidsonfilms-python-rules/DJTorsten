@@ -6,13 +6,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DJFlame</title>
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        .red {
+            color: rgb(207, 0, 0);
+        }
+
+        h4 {
+            font-weight: bold;
+        }
+    </style>
 </head>
 
 <body>
-
+    <div class="page">
+        <div class="center">
+            <h4 id="text">Checking For Internet</h4>
+        </div>
+    </div>
     <script>
         const ipc = require('electron').ipcRenderer
-        ipc.send('attemptAutoSignIn')
+
+        var text = document.getElementById('text')
+
+        function checkInternet(cb) {
+            require('dns').lookup('google.com', function (err) {
+                if (err && err.code == "ENOTFOUND") {
+                    cb(false);
+                } else {
+                    cb(true);
+                }
+            })
+        }
+
+        checkInternet(function (isConnected) {
+            if (isConnected) {
+                text.innerText = 'Validated Internet Connection!'
+                ipc.send('attemptAutoSignIn')
+            } else {
+                text.innerText = 'This device is not connected to the Internet, please connect before continuing'
+                text.className = 'red'
+            }
+        });
 
         ipc.on('signInSuccess', () => {
             window.location.replace("createParty.html");

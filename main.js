@@ -16,7 +16,8 @@ function createWindow() {
             nodeIntegration: true,
             contextIsolation: false,
             enableRemoteModule: true
-        }
+        },
+        icon: './assets/DJFlame Logo.svg'
     })
     // and load the index.html of the app.
     mainWindow.loadFile('loading.html').then(() => {
@@ -106,6 +107,7 @@ firebase.initializeApp(firebaseConfig);
 var db = firebase.firestore();
 
 const config = new Config()
+var partyID = ''
 
 config.set('devSaveDB', true)
 if (config.get('devSaveDB')) {
@@ -155,8 +157,20 @@ ipcMain.on('attemptAutoSignIn', () => {
     }
 })
 
+config.set('partyCode', '053467')
+ipcMain.on('joinLastParty', () => {
+    if (config.get('partyCode')) {
+        mainWindow.webContents.send('joinLastPartyCallback', true)
+        partyID = config.get('partyCode')
+        getSceneSettings()
+    } else {
+        mainWindow.webContents.send('joinLastPartyCallback', false)
+    }
+})
+
+function getSceneSettings() {
 if (!config.get('devSaveDB')) {
-    db.collection('053467').doc('metadata').get().then((doc) => {
+    db.collection(partyID).doc('metadata').get().then((doc) => {
         if (doc.exists) {
             console.log("Document data:", doc.data());
             var data = doc.data()
@@ -198,12 +212,12 @@ if (!config.get('devSaveDB')) {
             }
         }
     })
-}
+}}
 
 ipcMain.on('sceneSettingsChange', (e, data) => {
     // console.log(data)
     config.set('sceneSettings', data)
-    db.collection('053467').doc('metadata').set({
+    db.collection(partyID).doc('metadata').set({
         guestPicks: data.general.guestPicks,
         guestPicksExternalDisplay: data.guestPicks.externalDisplay,
         guestPicksSongLenRandom: data.guestPicks.songLength.random,
@@ -245,7 +259,6 @@ q.pop();
 var downloadedq = [];
 var status = 'STOPPED'
 var eventEmitter = new EventEmitter();
-var partyID = '053467'
 
 function sleep(ms) {
     return new Promise((resolve) => {
