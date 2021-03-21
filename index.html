@@ -121,7 +121,7 @@
                 class="fa-primary"></path>
             </g>
           </svg>
-          <span class="link-text">Themify</span>
+          <span class="link-text">Themify <span style="color: rgb(252, 122, 35);font-size: 0.75em; font-weight:bold;">beta</span></span>
         </a>
       </li>
     </ul>
@@ -164,7 +164,43 @@
     </div>
   </main>
 
+  <div id="sceneCardsRightClickMenuTemplate" style="display: none; visibility: hidden;">
+    <div class="menuItem">
+      <a onclick="gpUse()">Use</a>
+    </div>
+      <div class="rightClickMenuSeperator"></div>
+      <div class="menuItem">
+        <a href="./sceneSettings.html" style="color: #b9bbbe;">Edit Scene</a>
+      </div>
+  </div>
+
+  <div id="songCardsRightClickMenuTemplate" style="display: none; visibility: hidden;">
+    <div class="menuItem dangerMenuItem">
+      <a id="deleteSongElement" class="dangerMenuText">Delete</a>
+    </div>
+      <div class="rightClickMenuSeperator"></div>
+      <div class="menuItem">
+        <a onclick="">Report Song</a>
+      </div>
+      <div class="menuItem">
+        <a onclick="">Report User</a>
+      </div>
+      <div class="rightClickMenuSeperator"></div>
+      <div class="menuItem">
+        <a onclick="">Rate Song</a>
+      </div>
+      <div class="menuItem">
+        <a onclick="">Favorite Song</a>
+      </div>
+      <div class="menuItem">
+        <a onclick="">Award Song</a>
+      </div>
+  </div>
+
   <script src="js/firebase.js"></script>
+
+  <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
 
   <script src="js/app.js"></script>
   <script src="js/appstyles.js"></script>

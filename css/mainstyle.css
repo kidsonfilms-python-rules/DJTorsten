@@ -1333,3 +1333,82 @@ input[type=number] {
 .notCompleteContainer .fa-7x {
   margin-bottom: 10px;
 }
+
+.beta {
+  color: rgb(252, 122, 35);font-size: 0.75em; font-weight:bold;
+}
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+ 
+  /* Position the tooltip text - see examples below! */
+  position: absolute;
+  z-index: 1;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+
+.tippy-box[data-theme~='rightClick'] {
+  background-color: #18191c;
+  color: #b9bbbe;
+  padding: 4px;
+  min-width: 150px;
+}
+
+.tippy-box[data-theme~='rightClick'] p,.tippy-box[data-theme~='rightClick'] a {
+  flex: 1 1 auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+
+.tippy-box[data-theme~='rightClick'] .menuItem {
+  display: flex;
+  padding: 5px;
+  border-radius: 5px;
+}
+
+.tippy-box[data-theme~='rightClick'] .menuItem:hover {
+  background-color: var(--colour-body-background);
+  color: white;
+}
+
+.tippy-box[data-theme~='rightClick'] .menuItem:hover>a {
+  color: white !important;
+}
+
+.tippy-box[data-theme~='rightClick'] .dangerMenuItem {
+  color: #fd3b3b;
+}
+
+.tippy-box[data-theme~='rightClick'] .dangerMenuItem:hover {
+  background-color: #fd3b3b;
+  color: white;
+}
+
+.rightClickMenuSeperator {
+  box-sizing: border-box;
+    margin: 0px;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid hsla(0,0%,100%,0.06);;
+}

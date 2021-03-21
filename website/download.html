@@ -1,0 +1,247 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download DJFlame</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <style>
+        body {
+            margin: 0px;
+        }
+
+        .installSteps li {
+            display: flex;
+            list-style: none;
+            flex-direction: column;
+            text-align: left;
+            /* background-color: rosybrown; */
+            justify-content: center;
+        }
+
+        .installSteps li p {
+            margin: 12px 38px;
+        }
+
+        .installSteps {
+            display: block;
+            counter-increment: myCounter 0;
+            list-style-type: decimal;
+            margin-block-start: 1em;
+            margin-block-end: 1em;
+            margin-inline-start: 0px;
+            margin-inline-end: 0px;
+            padding-inline-start: 40px;
+            width: 100vw;
+        }
+
+        a {
+            color: #df49a6;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .installSteps li:before {
+            content: counter(myCounter);
+            counter-increment: myCounter;
+            line-height: 1;
+            text-align: center;
+            width: 16px;
+            height: 16px;
+            padding: 5px;
+            margin-right: 12px;
+            font-weight: 700;
+            position: absolute;
+            display: inline-block;
+            border-radius: 50rem;
+            background: linear-gradient(210deg, rgba(255, 126, 238, 1) 0%, rgba(223, 73, 166, 1) 100%);
+        }
+
+        .downloadMain {
+            margin-top: 10vh;
+            padding-left: 20px;
+            margin-bottom: 20px;
+        }
+
+        .downloadMain p {
+            width: 80vw;
+        }
+
+        .errorScreen {
+            display: none;
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            transition: visibility 0.25s ease-in-out, opacity 0.25s ease-in-out;
+            background-color: #212121;
+            height: 100vh;
+            width: 100vw;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="div logo">
+            <img src="./assets/favicon.png" height="40" alt="">
+            <h4>DJFlame</h4>
+        </div>
+        <ul class="nav-links">
+            <li><a href="./">Home</a></li>
+            <li><a href="./#about">About</a></li>
+            <li><a href="./#install">Install</a></li>
+        </ul>
+        <div class="burger">
+            <div class="line1"></div>
+            <div class="line2"></div>
+            <div class="line3"></div>
+        </div>
+    </nav>
+    <div class="downloadMain">
+        <h1>Download Has Started!</h1>
+        <p>If the Download hasnt started, <a href="">Click Here</a></p>
+        <ol class="installSteps">
+            <li>
+                <p>Download the Installer</p>
+            </li>
+            <li>
+                <p>Open the Downloaded Installer</p>
+            </li>
+            <li>
+                <p>Follow the Steps the Installer Gives</p>
+            </li>
+            <li>
+                <p>Follow our <a href="">Getting Started Guide</a> and Prosper!</p>
+            </li>
+        </ol>
+        <h2>More info about <span class="beta">beta</span></h2>
+        <p><span class="beta">beta</span> is the development proccess of an applicatation. When you see the <span class="beta">beta</span> tag next to a download, it means that the product is not bug-free. If you find a bug, report it here and we will do our best to try and fix it.</p>
+        <br>
+        <iframe id="downloadIframe" style="display:none;" download></iframe>
+        <!-- <h3>View our Changelog <a href="">here</a>!</h3>
+        <h4 style="margin-bottom: 5px;">What is a Changelog?</h4>
+        <p>A Changelog show what fixes/feature additions we made to our versions of DJFlame</p> -->
+    </div>
+
+    <footer id="footer">
+        <div class="footerRow">
+            <div class="footerSection">
+                <h4>Ready to use DJFlame?</h4>
+                <button class="installButton" onclick="location.href='./#install'">Install</button>
+            </div>
+            <div class="footerSection">
+                <h4>Follow Us</h4>
+                <p>yea, we have nothing...</p>
+            </div>
+            <div class="footerSection">
+                <h4>Support Us</h4>
+                <p>again, nothing</p>
+            </div>
+            <div class="footerSection">
+                <h4>Information</h4>
+                <ol>
+                    <li>
+                        <p><a href="">Contact Us</a></p>
+                    </li>
+                    <li>
+                        <p><a href="./terms-privacy.html">Privacy</a></p>
+                    </li>
+                    <li>
+                        <p><a href="./terms-privacy.html">Terms of Use</a></p>
+                    </li>
+                </ol>
+            </div>
+        </div>
+        <p>&#169; 2021 DJFlame</p>
+    </footer>
+
+    <div class="errorScreen" id="errorScreen">
+        <div class="page">
+            <div class="center">
+                <h1>Install Option not Found!</h1>
+                <p>Go back <a href="./#install">here</a> and select your OS</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="./js/style.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        var os = urlParams.get('os')
+
+        if (!os) {
+           console.log('No URL Params, getting OS')
+           var OSName = "Unknown";
+if (window.navigator.userAgent.indexOf("Windows NT 10.0")!= -1) OSName="Windows";
+if (window.navigator.userAgent.indexOf("Windows NT 6.3") != -1) OSName="Windows";
+if (window.navigator.userAgent.indexOf("Windows NT 6.2") != -1) OSName="Windows";
+if (window.navigator.userAgent.indexOf("Windows NT 6.1") != -1) OSName="Windows";
+if (window.navigator.userAgent.indexOf("Windows NT 6.0") != -1) OSName="Windows";
+if (window.navigator.userAgent.indexOf("Windows NT 5.1") != -1) OSName="Windows";
+if (window.navigator.userAgent.indexOf("Windows NT 5.0") != -1) OSName="Windows";
+if (window.navigator.userAgent.indexOf("Mac")            != -1) OSName="Mac";
+if (window.navigator.userAgent.indexOf("X11")            != -1) OSName="UNIX";
+if (window.navigator.userAgent.indexOf("Linux")          != -1) OSName="Linux";
+if (OSName != 'Unknown') {
+  if (OSName == 'Windows') {
+    os = 'windows'
+  } else if (OSName == 'Mac') {
+    os = 'macos'
+  } else if (OSName == 'Linux') {
+    os = 'linux'
+  }
+}
+
+if (os) {
+    console.log(`Found OS! Downloading DJFlame for ${os}`)
+    if (os == 'windows') {
+                document.getElementById('downloadIframe').download = './download/test.txt';
+            } else if (os == 'macos') {
+                window.location.href = './download/test.msi'
+            } else if (os == 'linux') {
+                document.getElementById('downloadIframe').download = './download/test.txt';
+            } else {
+                var errorScreen = document.getElementById('errorScreen')
+    errorScreen.style.display = 'block'
+    errorScreen.style.visibility = 'visible'
+    errorScreen.style.opacity = '1'
+    document.body.style.overflowY = 'hidden'
+    document.getElementById('footer').style.display = 'none'
+            }
+} else {
+    var errorScreen = document.getElementById('errorScreen')
+    errorScreen.style.display = 'block'
+    errorScreen.style.visibility = 'visible'
+    errorScreen.style.opacity = '1'
+    document.body.style.overflowY = 'hidden'
+    document.getElementById('footer').style.display = 'none'
+}
+        } else {
+            console.log(`Downloading DJFlame for ${os}`)
+            if (os == 'windows') {
+                document.getElementById('downloadIframe').download = './download/test.txt';
+            } else if (os == 'macos') {
+                document.getElementById('downloadIframe').download = './download/test.txt';
+            } else if (os == 'linux') {
+                document.getElementById('downloadIframe').download = '//./download/test.txt';
+            } else {
+                var errorScreen = document.getElementById('errorScreen')
+    errorScreen.style.display = 'block'
+    errorScreen.style.visibility = 'visible'
+    errorScreen.style.opacity = '1'
+    document.body.style.overflowY = 'hidden'
+    document.getElementById('footer').style.display = 'none'
+            }
+        }
+    </script>
+</body>
+
+</html>

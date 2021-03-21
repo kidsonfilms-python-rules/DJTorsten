@@ -169,50 +169,51 @@ ipcMain.on('joinLastParty', () => {
 })
 
 function getSceneSettings() {
-if (!config.get('devSaveDB')) {
-    db.collection(partyID).doc('metadata').get().then((doc) => {
-        if (doc.exists) {
-            console.log("Document data:", doc.data());
-            var data = doc.data()
-            config.set('sceneSettings', {
-                general: {
-                    guestPicks: data.guestPicks,
-                    karaoke: data.karaoke
-                },
-                guestPicks: {
-                    externalDisplay: data.guestPicksExternalDisplay,
-                    songLength: {
-                        random: data.guestPicksSongLenRandom,
-                        range1: data.guestPicksSongLenRange1,
-                        range2: data.guestPicksSongLenRange2,
+    if (!config.get('devSaveDB')) {
+        db.collection(partyID).doc('metadata').get().then((doc) => {
+            if (doc.exists) {
+                console.log("Document data:", doc.data());
+                var data = doc.data()
+                config.set('sceneSettings', {
+                    general: {
+                        guestPicks: data.guestPicks,
+                        karaoke: data.karaoke
+                    },
+                    guestPicks: {
+                        externalDisplay: data.guestPicksExternalDisplay,
+                        songLength: {
+                            random: data.guestPicksSongLenRandom,
+                            range1: data.guestPicksSongLenRange1,
+                            range2: data.guestPicksSongLenRange2,
+                        }
                     }
-                }
-            })
-            console.log(config.get('sceneSettings'))
-        } else {
-            // doc.data() will be undefined in this case
-            console.log("No such document!");
-        }
-    }).catch((error) => {
-        console.log("Error getting document:", error);
-    });
-} else {
-    console.log('Entering Developer Database Saving Mode...')
-    config.set('sceneSettings', {
-        general: {
-            guestPicks: true,
-            karaoke: false
-        },
-        guestPicks: {
-            externalDisplay: true,
-            songLength: {
-                random: true,
-                range1: 22,
-                range2: 44,
+                })
+                console.log(config.get('sceneSettings'))
+            } else {
+                // doc.data() will be undefined in this case
+                console.log("No such document!");
             }
-        }
-    })
-}}
+        }).catch((error) => {
+            console.log("Error getting document:", error);
+        });
+    } else {
+        console.log('Entering Developer Database Saving Mode...')
+        config.set('sceneSettings', {
+            general: {
+                guestPicks: true,
+                karaoke: false
+            },
+            guestPicks: {
+                externalDisplay: true,
+                songLength: {
+                    random: true,
+                    range1: 22,
+                    range2: 44,
+                }
+            }
+        })
+    }
+}
 
 ipcMain.on('sceneSettingsChange', (e, data) => {
     // console.log(data)
@@ -285,23 +286,29 @@ ipcMain.on('gpAdd', (event, data) => {
 
 function gpAddDb(songList) {
     console.warn('Still in EXPERIMENTAL')
-    songList.forEach((s, i) => {
-        db.collection(partyID).doc("Guest Picks").get().then((doc) => {
-            db.collection(partyID).doc('Guest Picks').collection('Queue').doc((doc.data().currentDocName + 1).toString()).set({
-                url: s,
-                submitter: "DJ"
-            })
-                .then(function () {
-                    console.log("Document successfully written!");
-                    db.collection(partyID).doc('Guest Picks').update({
-                        currentDocName: firebase.firestore.FieldValue.increment(1)
-                    });
-                })
-                .catch(function (error) {
-                    console.error("Error writing document: ", error);
-                });
+    if (config.get('devSaveDB')) {
+        songList.forEach((s) => {
+            gpAdd(s, q.length + 4)
         })
-    })
+    } else {
+        songList.forEach((s, i) => {
+            db.collection(partyID).doc("Guest Picks").get().then((doc) => {
+                db.collection(partyID).doc('Guest Picks').collection('Queue').doc((doc.data().currentDocName + 1).toString()).set({
+                    url: s,
+                    submitter: "DJ"
+                })
+                    .then(function () {
+                        console.log("Document successfully written!");
+                        db.collection(partyID).doc('Guest Picks').update({
+                            currentDocName: firebase.firestore.FieldValue.increment(1)
+                        });
+                    })
+                    .catch(function (error) {
+                        console.error("Error writing document: ", error);
+                    });
+            })
+        })
+    }
 }
 
 async function gpPlay(time, index, currentI) {
@@ -432,6 +439,10 @@ async function gpStart() {
     eventEmitter.on('stop', () => {
         console.info('Stopping...')
         status = 'STOPPED'
+        q = []
+        downloadedq = []
+        console.log(q)
+        console.log(downloadedq)
         return 'Stopped by DJ';
     })
     status = 'STARTED'
@@ -577,8 +588,13 @@ ipcMain.on('gpUse', () => {
             .onSnapshot(function (snapshot) {
                 snapshot.docChanges().forEach(function (change) {
                     if (change.type === "added") {
-                        console.log("New Song: ", change.doc.data());
-                        gpAdd(change.doc.data().url, change.doc._delegate._document.key.path.segments[8])
+                        console.log("New Song: ", change.doc.data(), "\n Doc Name: ", change.doc._delegate._document.key.path.segments[3]);
+                        // console.log(change.doc)
+                        // console.log(change.doc._delegate)
+                        // console.log(change.doc._delegate._document)
+                        // console.log(change.doc._delegate._document.key)
+                        // console.log(change.doc._delegate._document.key.path)
+                        gpAdd(change.doc.data().url, change.doc._delegate._document.key.path.segments[3])
                     }
                     if (change.type === "removed") {
                         console.log("Removed Song: ", change.doc.data());
@@ -598,6 +614,26 @@ ipcMain.on('gpUse', () => {
         gpAdd('https://music.youtube.com/watch?v=zVlFkFmk_NM&list=RDAMVMzVlFkFmk_NM', 9)
     }
 })
+
+ipcMain.on('requestCurrentRunningData', () => {
+    if (q.length != 0) {
+        mainWindow.webContents.send('callbackCurrentRunningData', {
+            runningScene: 'GP',
+            queue: q
+        })
+    }
+})
+
+ipcMain.on('clearQueue', () => q = [])
+
+function gpDeleteSong(docName) {
+    db.collection(partyID).doc('Guest Picks').collection('Queue').doc(docName).delete().then(() => {
+        q.splice(docName, 1)
+        song.remove()
+    })
+}
+
+ipcMain.on('gpDeleteSong', (e, docname) => gpDeleteSong(docname))
 // var gpStartButton = document.getElementById("startGuestPicks");
 // var gpUseButton = document.getElementById("useGuestPicks");
 // var gpSkipButton = document.getElementById("skipGuestPicks");
