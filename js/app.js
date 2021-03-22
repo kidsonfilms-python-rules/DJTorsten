@@ -184,7 +184,6 @@ gpAddSongButton.onclick = () => {
         minimizable: false,
         frame: false, //TODO: CHANGE TO FALSE
         resizable: false,
-        contextIsolation: true,
         webPreferences: {
             nodeIntegration: true,
             enableRemoteModule: true,

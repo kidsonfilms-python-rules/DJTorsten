@@ -109,7 +109,7 @@ var db = firebase.firestore();
 const config = new Config()
 var partyID = ''
 
-config.set('devSaveDB', false)
+config.set('devSaveDB', true)
 if (config.get('devSaveDB')) {
     config.set('signInInfo', false)
 }
@@ -516,6 +516,7 @@ var win = null
 function launchExternalDisplay() {
     if (win) {
         win.close()
+        win = null
     }
     if (choiceExternalDisplay) {
         var d = choiceExternalDisplay
@@ -534,7 +535,8 @@ function launchExternalDisplay() {
             show: false,
             webPreferences: {
                 nodeIntegration: true,
-                enableRemoteModule: true
+                enableRemoteModule: true,
+                contextIsolation: false
             }
         })
         // win.setKiosk(true);
@@ -542,7 +544,10 @@ function launchExternalDisplay() {
         win.show()
         ipcMain.on('stop', () => {
             win.close()
+            win = null
         })
+
+        win.on('close', () => win = null)
     }
 }
 
