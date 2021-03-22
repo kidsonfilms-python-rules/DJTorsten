@@ -19,3 +19,23 @@ const themeMap = {
   }
   
   document.getElementById('themeButton').onclick = toggleTheme;
+
+  function checkInternet(cb) {
+    require('dns').lookup('google.com', function (err) {
+        if (err && err.code == "ENOTFOUND") {
+            cb(false);
+        } else {
+            cb(true);
+        }
+    })
+  }
+  window.addEventListener('offline', () => checkInternet((r) => {
+    if (!r) {
+      window.location.replace(`loading.html?redirect=${window.location.href.split('/').pop()}`)
+    }
+  }))
+  checkInternet((r) => {
+    if (!r) {
+      window.location.replace(`loading.html?redirect=${window.location.href.split('/').pop()}`)
+    }
+  })

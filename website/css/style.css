@@ -455,7 +455,7 @@ footer p {
     color: rgb(136, 136, 136);
 }
 
-footer .installButton {
+.installButton {
     padding: 10px 15px;
     font-size: 16px;
     border-radius: 55px;
@@ -467,7 +467,7 @@ footer .installButton {
     letter-spacing: .05em;
 }
 
-footer .installButton:hover {
+.installButton:hover {
     background-color: var(--secondary-brand-color);
 }
 

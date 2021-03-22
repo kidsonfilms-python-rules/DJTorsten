@@ -109,7 +109,7 @@ var db = firebase.firestore();
 const config = new Config()
 var partyID = ''
 
-config.set('devSaveDB', true)
+config.set('devSaveDB', false)
 if (config.get('devSaveDB')) {
     config.set('signInInfo', false)
 }

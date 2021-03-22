@@ -14,19 +14,92 @@
         h4 {
             font-weight: bold;
         }
+
+        .tipTitle {
+            color: #df49a6;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            line-height: 16px;
+            margin-bottom: 8px;
+        }
+
+        #randomTip {
+            color: #c9c9c9;
+            font-size: 14px;
+            line-height: 20px;
+        }
+
+        .tip {
+            position: absolute;
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+            margin: 0;
+            left: 0;
+        }
+
+        .tip a {
+            color: #c9c9c9;
+            text-decoration: none;
+            font-weight: 700;
+        }
     </style>
 </head>
 
 <body>
     <div class="page">
         <div class="center">
-            <h4 id="text">Checking For Internet</h4>
+            <div class="loader loader--style8" title="7">
+                <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
+                    xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="50%" viewBox="0 0 20 30"
+                    style="enable-background:new 0 0 50 50;" xml:space="preserve">
+                    <rect x="0" y="10" width="4" height="10" fill="#333" opacity="0.2">
+                        <animate attributeName="opacity" attributeType="XML" values="0.2; 1; .2" begin="0s" dur="0.6s"
+                            repeatCount="indefinite" />
+                        <animate attributeName="height" attributeType="XML" values="10; 20; 10" begin="0s" dur="0.6s"
+                            repeatCount="indefinite" />
+                        <animate attributeName="y" attributeType="XML" values="10; 5; 10" begin="0s" dur="0.6s"
+                            repeatCount="indefinite" />
+                    </rect>
+                    <rect x="8" y="10" width="4" height="10" fill="#333" opacity="0.2">
+                        <animate attributeName="opacity" attributeType="XML" values="0.2; 1; .2" begin="0.15s"
+                            dur="0.6s" repeatCount="indefinite" />
+                        <animate attributeName="height" attributeType="XML" values="10; 20; 10" begin="0.15s" dur="0.6s"
+                            repeatCount="indefinite" />
+                        <animate attributeName="y" attributeType="XML" values="10; 5; 10" begin="0.15s" dur="0.6s"
+                            repeatCount="indefinite" />
+                    </rect>
+                    <rect x="16" y="10" width="4" height="10" fill="#333" opacity="0.2">
+                        <animate attributeName="opacity" attributeType="XML" values="0.2; 1; .2" begin="0.3s" dur="0.6s"
+                            repeatCount="indefinite" />
+                        <animate attributeName="height" attributeType="XML" values="10; 20; 10" begin="0.3s" dur="0.6s"
+                            repeatCount="indefinite" />
+                        <animate attributeName="y" attributeType="XML" values="10; 5; 10" begin="0.3s" dur="0.6s"
+                            repeatCount="indefinite" />
+                    </rect>
+                </svg>
+            </div>
+            <h4 id="text"></h4>
+            <div class="tip">
+                <h6 class="tipTitle">Did You Know?</h6>
+                <div id="randomTip"></div>
+            </div>
         </div>
     </div>
+
     <script>
         const ipc = require('electron').ipcRenderer
 
         var text = document.getElementById('text')
+
+        var fs = require('fs')
+        var tipText = document.getElementById('randomTip')
+
+        var tipList = JSON.parse(fs.readFileSync("./assets/randomTip.json"))
+        tipText.innerHTML = tipList[Math.floor(Math.random() * tipList.length)]
+
+
 
         function checkInternet(cb) {
             require('dns').lookup('google.com', function (err) {
@@ -38,15 +111,48 @@
             })
         }
 
-        checkInternet(function (isConnected) {
-            if (isConnected) {
-                text.innerText = 'Validated Internet Connection!'
-                ipc.send('attemptAutoSignIn')
-            } else {
-                text.innerText = 'This device is not connected to the Internet, please connect before continuing'
-                text.className = 'red'
-            }
-        });
+        var urlParams = new URLSearchParams(window.location.search)
+        if (urlParams.get('redirect') == null) {
+            console.log('No Redirect, Will go to Sign In Page Afterwards')
+            checkInternet(function (isConnected) {
+                if (isConnected) {
+                    text.innerText = 'Validated Internet Connection!'
+                    ipc.send('attemptAutoSignIn')
+                } else {
+                    text.innerText = 'This device is not connected to the Internet, please connect before continuing'
+                    text.className = 'red'
+                    window.addEventListener('online', () => checkInternet(function (isConnected) {
+                        if (isConnected) {
+                            text.innerText = 'Validated Internet Connection!'
+                            ipc.send('attemptAutoSignIn')
+                        } else {
+                            text.innerText = 'This device is not connected to the Internet, please connect before continuing'
+                            text.className = 'red'
+                            window.addEventListener('online', () => checkInternet());
+                        }
+                    }));
+                }
+            });
+        } else {
+            checkInternet(function (isConnected) {
+                if (isConnected) {
+                    text.innerText = 'Validated Internet Connection!'
+                    window.location.href = urlParams.get('redirect')
+                } else {
+                    text.innerText = 'This device is not connected to the Internet, please connect before continuing'
+                    text.className = 'red'
+                    window.addEventListener('online', () => checkInternet(function (isConnected) {
+                        if (isConnected) {
+                            text.innerText = 'Validated Internet Connection!'
+                            window.location.href = urlParams.get('redirect')
+                        } else {
+                            text.innerText = 'This device is not connected to the Internet, please connect before continuing'
+                            text.className = 'red'
+                            window.addEventListener('online', () => checkInternet());
+                        }
+                    }));
+                }
+            })}
 
         ipc.on('signInSuccess', () => {
             window.location.replace("createParty.html");

@@ -122,3 +122,17 @@ button:focus {
 .joinlasta:hover {
     font-size: 12.5px;
 }
+
+.loader{
+    height: 100px;
+    width: 20%;
+    text-align: center;
+    padding: 0.5em;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.loader svg path,
+svg rect{
+  fill: #df49a6;
+}
