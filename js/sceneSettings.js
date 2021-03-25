@@ -3,6 +3,7 @@ const ipcRenderer = electron.ipcRenderer;
 const BrowserWindow = electron.remote.BrowserWindow
 const onChange = require('on-change');
 var fs = require('fs');
+const path = require('path');
 
 var files = fs.readdirSync('./music/');
 console.log(files)
@@ -23,6 +24,25 @@ if (files.length == 0) {
         animation:'perspective',
       });
 }
+
+var directory = 'music'
+
+clearCacheButton.addEventListener('click', () => {
+    for (const file of files) {
+        fs.unlink(path.join(directory, file), err => {
+          if (err) throw err;
+          clearCacheButton.disabled = true;
+    tippy('#clearCacheProxy', {
+        duration: 0,
+        arrow: true,
+        content: 'Cache is Clear!',
+        offset: [0,-1000],
+        inertia: true,
+        animation:'perspective',
+      });
+        });
+      }
+})
 
 var savedData;
 var currentData;
@@ -300,22 +320,22 @@ guestPicksToggle.addEventListener('change', () => {
         unsavedModal.style.visibility = 'visible'
     }
 })
-karaokeToggle.addEventListener('change', () => {
-    currentData.general.karaoke = karaokeToggle.checked
-    if (JSON.stringify(currentData) == JSON.stringify(savedData)) {
-        unsavedModal.style.display = 'none'
-        unsavedModal.style.visibility = 'hidden'
-    } else {
-        unsavedModal.style.display = 'flex'
-        unsavedModal.style.visibility = 'visible'
-    }
-})
+// karaokeToggle.addEventListener('change', () => {
+//     currentData.general.karaoke = karaokeToggle.checked
+//     if (JSON.stringify(currentData) == JSON.stringify(savedData)) {
+//         unsavedModal.style.display = 'none'
+//         unsavedModal.style.visibility = 'hidden'
+//     } else {
+//         unsavedModal.style.display = 'flex'
+//         unsavedModal.style.visibility = 'visible'
+//     }
+// })
 
-const button = document.getElementById('shareButton');
+const shareButton = document.getElementById('shareButton');
 const sendButton = document.querySelector('.shareModal__submit');
 const modal = document.getElementById('share-modal')
 
-button.addEventListener('click', () => {
+shareButton.addEventListener('click', () => {
     modal.classList.toggle('share-modal--open');
     console.log(modal)
     modal.classList.toggle('share-modal--close');

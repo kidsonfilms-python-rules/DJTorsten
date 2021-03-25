@@ -57,6 +57,13 @@ const doneButton = document.getElementById('done')
 
 doneButton.onclick = () => {
     if (songList == []) {
+        if (input.val.replace(' ', '') == '') {
+            if (input.val.contains('youtube.com')) {
+                songList.push(input.val)
+            } else {
+                alert('The link provided it not a YouTube link')
+            }
+        }
         return thisWindow.close()
     }
     ipcRenderer.send('gpAddSong', songList)

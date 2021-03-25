@@ -63,7 +63,7 @@ button:focus {
 
 .center .text {
     width: 100%;
-    margin-bottom: 10px;
+    /* margin-bottom: 10px; */
     background-color: rgb(24, 24, 24);
     border-radius: 100px;
     padding: 10px;
@@ -135,4 +135,20 @@ button:focus {
 .loader svg path,
 svg rect{
   fill: #df49a6;
+}
+
+.invalid {
+    border-color: rgb(255, 0, 43) !important;
+  }
+
+.invalidText {
+    color: red;
+    margin: 5px;
+    text-align: left;
+    margin-bottom: 10px;
+    opacity: 0;
+}
+
+.invalidText a {
+    color: red;
 }

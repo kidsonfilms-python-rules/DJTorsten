@@ -230,13 +230,6 @@ ipcRenderer.on('gpAdd', async (e, data) => {
         ipcRenderer.send('gpDeleteSong', docName)
         song.remove()
     }
-    // deletei.onclick = () => {
-    //     db.collection(partyID).doc('Guest Picks').collection('Queue').doc(docName).delete().then(() => {
-    //         console.log(`Succesfully Deleted ${url}!`)
-    //         q.splice(docName, 1)
-    //         song.remove()
-    //     })
-    // }
     probar.className = 'probar'
     song.appendChild(songname)
     song.appendChild(deletei)
@@ -318,19 +311,6 @@ function gpUse() {
         document.getElementById('startGuestPicks').style = 'display: block;'
         document.getElementById('useGuestPicks').value = 'UNHAND'
         document.getElementById('gpqueuediv').style = 'display: block;'
-        // testingWhileDBIsBroken()
-        // db.collection(partyID).doc("Guest Picks").collection('Queue')
-        //     .onSnapshot(function (snapshot) {
-        //         snapshot.docChanges().forEach(function (change) {
-        //             if (change.type === "added") {
-        //                 console.log("New Song: ", change.doc.data());
-        //                 ipcRenderer.send('gpAdd', {url: change.doc.data().url, docName: change.doc._delegate._document.key.path.segments[8]})
-        //             }
-        //             if (change.type === "removed") {
-        //                 console.log("Removed Song: ", change.doc.data());
-        //             }
-        //         });
-        //     });
         ipcRenderer.send('gpUse', 'Start')
     } else if (gpuseval == 1) {
         gpuseval = 0

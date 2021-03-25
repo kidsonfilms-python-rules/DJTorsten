@@ -130,6 +130,15 @@ ipcMain.on('emailAuth', (e, data) => {
             var errorCode = error.code;
             var errorMessage = error.message;
             console.log(`${errorCode}: ${errorMessage}`)
+            if (errorCode == 'auth/invalid-email') {
+                mainWindow.webContents.send('auth/invalidEmail')
+            } else if (errorCode == 'auth/user-not-found') {
+                mainWindow.webContents.send('auth/userNotFound')
+            } else if (errorCode == 'auth/wrong-password') {
+                mainWindow.webContents.send('auth/wrongPassword')
+            } else {
+                mainWindow.webContents.send('auth/unknownError')
+            }
         });
 })
 
@@ -486,7 +495,15 @@ async function gpMain(index, downloadingStatus) {
         eventEmitter.on(`downloadFinished ${index}`, async (i) => {
             downloadingStatus = "PLAYING"
             console.log(`Playing Index ${index}, From ${i}`)
-            await gpPlay(40, i, index)
+            var sceneSetting = config.get('sceneSettings')
+            var songLength = 40
+            if (sceneSetting.guestPicks.songLength.random) {
+                songLength = await Math.floor(Math.random() * (sceneSetting.guestPicks.songLength.range2 - sceneSetting.guestPicks.songLength.range1 + 1) + sceneSetting.guestPicks.songLength.range1);
+            } else {
+                songLength = await sceneSetting.guestPicks.songLength.range1
+            }
+            console.log('playing for ', songLength, ' seconds')
+            await gpPlay(songLength, i, index)
             resolve('Done')
         })
     })
