@@ -175,11 +175,10 @@ gpAddSongButton.onclick = () => {
         addSongWindow.focus()
         return
     }
-
-    addSongWindow = new BrowserWindow({
+     var winSettings = (process.platform) == 'darwin' ? {
         width: 600,
         height: 400,
-        vibrancy: 'ultra-dark',
+        vibrancy: 'fullscreen-ui',
         maximizable: false,
         minimizable: false,
         frame: false, //TODO: CHANGE TO FALSE
@@ -188,10 +187,28 @@ gpAddSongButton.onclick = () => {
             nodeIntegration: true,
             enableRemoteModule: true,
             contextIsolation: false,
+            devTools: false
         },
         alwaysOnTop: true,
         show: false,
-    });
+    } : {
+        width: 600,
+        height: 400,
+        backgroundColor: "#202020",
+        maximizable: false,
+        minimizable: false,
+        frame: false, //TODO: CHANGE TO FALSE
+        resizable: false,
+        webPreferences: {
+            nodeIntegration: true,
+            enableRemoteModule: true,
+            contextIsolation: false,
+            devTools: false
+        },
+        alwaysOnTop: true,
+        show: false,
+    }
+    addSongWindow = new BrowserWindow(winSettings);
 
     addSongWindow.loadURL(`file://${__dirname}/windows/gpAddSong.html`)
 

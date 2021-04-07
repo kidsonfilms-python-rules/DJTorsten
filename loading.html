@@ -96,7 +96,7 @@
         var fs = require('fs')
         var tipText = document.getElementById('randomTip')
 
-        var tipList = JSON.parse(fs.readFileSync("./assets/randomTip.json"))
+        var tipList = JSON.parse(fs.readFileSync(`${__dirname}/assets/randomTip.json`))
         tipText.innerHTML = tipList[Math.floor(Math.random() * tipList.length)]
 
 
@@ -117,14 +117,14 @@
             checkInternet(function (isConnected) {
                 if (isConnected) {
                     text.innerText = 'Validated Internet Connection!'
-                    ipc.send('attemptAutoSignIn')
+                    ipc.send('checkForUpdates')
                 } else {
                     text.innerText = 'This device is not connected to the Internet, please connect before continuing'
                     text.className = 'red'
                     window.addEventListener('online', () => checkInternet(function (isConnected) {
                         if (isConnected) {
                             text.innerText = 'Validated Internet Connection!'
-                            ipc.send('attemptAutoSignIn')
+                            ipc.send('checkForUpdates')
                         } else {
                             text.innerText = 'This device is not connected to the Internet, please connect before continuing'
                             text.className = 'red'
@@ -152,7 +152,8 @@
                         }
                     }));
                 }
-            })}
+            })
+        }
 
         ipc.on('signInSuccess', () => {
             window.location.replace("createParty.html");
@@ -160,6 +161,33 @@
 
         ipc.on('signInFail', () => {
             window.location.replace("signin.html");
+        })
+
+        ipc.on('checkingForUpdates', () => {
+            console.log('Checking For Updates')
+            text.innerText = 'Checking For Updates'
+        })
+
+        ipc.on('noUpdateAvailable', () => {
+            console.log('No Update Available')
+            text.innerText = 'No Updates Available'
+            ipc.send('attemptAutoSignIn')
+        })
+
+        ipc.on('updateAvailable', (err, d) => {
+            console.log('Update Available')
+            console.log(d)
+            text.innerText = 'Update Available'
+        })
+
+        ipc.on('updateDownloadProgress', (e, downloadObj) => {
+            console.log(downloadObj)
+            text.innerText = `Update Downloading, ${Math.floor(parseFloat(downloadObj.percent.toString().replace('%', ''))).toString()}`
+        })
+
+        ipc.on('updateDownloadFinished', () => {
+            console.log('Update Download Finished')
+            text.innerText = 'Download Finished, Installing Update'
         })
     </script>
 </body>

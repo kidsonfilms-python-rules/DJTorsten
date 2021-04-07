@@ -5,7 +5,7 @@ const onChange = require('on-change');
 var fs = require('fs');
 const path = require('path');
 
-var files = fs.readdirSync('./music/');
+var files = fs.readdirSync(`${__dirname}/music/`);
 console.log(files)
 const fi = files.indexOf('Rick Astley - Never Gonna Give You Up (Video).mp3');
 if (fi > -1) {
@@ -233,25 +233,40 @@ externalDisplayButton.addEventListener('click', (e) => {
         externalDisplayChoiceWindow.focus()
         return
     }
-
-    externalDisplayChoiceWindow = new BrowserWindow({
+    var winSettings = (process.platform) == 'darwin' ? {
         width: 600,
         height: 400,
-        vibrancy: 'ultra-dark',
+        vibrancy: 'fullscreen-ui',
         maximizable: false,
         minimizable: false,
         frame: false, //TODO: CHANGE TO FALSE
         resizable: false,
-        contextIsolation: true,
         webPreferences: {
             nodeIntegration: true,
             enableRemoteModule: true,
             contextIsolation: false,
+            devTools: false
         },
         alwaysOnTop: true,
         show: false,
-    });
-
+    } : {
+        width: 600,
+        height: 400,
+        backgroundColor: "#202020",
+        maximizable: false,
+        minimizable: false,
+        frame: false, //TODO: CHANGE TO FALSE
+        resizable: false,
+        webPreferences: {
+            nodeIntegration: true,
+            enableRemoteModule: true,
+            contextIsolation: false,
+            devTools: false
+        },
+        alwaysOnTop: true,
+        show: false,
+    }
+    externalDisplayChoiceWindow = new BrowserWindow(winSettings);
     externalDisplayChoiceWindow.loadURL(`file://${__dirname}/windows/chooseExternalDisplay.html`)
 
     externalDisplayChoiceWindow.show()
@@ -379,7 +394,7 @@ function shareReddit() {
 }
 
 function sharePrint() {
-    getHTML('./windows/sharePrint.html', function (response) {
+    getHTML(`${__dirname}/windows/sharePrint.html`, function (response) {
         var element = response.documentElement
         html2pdf(element);
     });
@@ -395,6 +410,10 @@ document.getElementById("clickToCopyShareURL").onclick = function () {
     }, 1000);
 }
 
+ipcRenderer.send('requestPartyCode')
+ipcRenderer.on('requestedPartyCode', (err, code) => {
+    document.getElementById("clickToCopyShareURL").value = `https://djflame.kidsonfilms.com/join?c=${code}`
+})
 document.getElementById("clickToCopyShareURL").addEventListener('select', function() {
     this.selectionStart = this.selectionEnd;
   }, false);

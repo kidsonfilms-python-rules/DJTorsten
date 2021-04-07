@@ -248,6 +248,7 @@ transform: rotate(45deg) translate(-5px, -6px);
     text-align: center;
     padding-top: 20vh;
     font-family: 'Poppins', sans-serif;
+    overflow: hidden;
 }
 
 .hook {
@@ -262,7 +263,7 @@ transform: rotate(45deg) translate(-5px, -6px);
 }
 
 .homeMain h6 {
-    margin-top: 35vh;
+    margin-top: 40vh;
     margin-left: 2.5vw;
     text-align: start;
     font-size: 1em;
@@ -550,3 +551,9 @@ footer a:hover {
   justify-content: center;
   text-align: center;
 }
+
+.articleTitle {
+    font-weight: 700 !important;
+    font-size: 40px !important;
+    line-height: 10px;
+  }

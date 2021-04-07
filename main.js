@@ -15,10 +15,12 @@ function createWindow() {
             preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: true,
             contextIsolation: false,
-            enableRemoteModule: true
+            enableRemoteModule: true,
+            devTools: false
         },
-        icon: './assets/DJFlame Logo.svg'
+        icon: `${__dirname}/assets/DJFlame Logo.svg`
     })
+    mainWindow.removeMenu()
     // and load the index.html of the app.
     mainWindow.loadFile('loading.html').then(() => {
         mainWindow.show()
@@ -67,6 +69,7 @@ ipcMain.on('gpAddSong', (e, songList) => {
 //--------------------
 // General Packages
 const Config = require('electron-store');
+const { autoUpdater } = require("electron-updater");
 //--------------------
 // Guest Picks Packages
 var Soundplayer = require('play-sound')(opts = {})
@@ -109,10 +112,16 @@ var db = firebase.firestore();
 const config = new Config()
 var partyID = ''
 
-config.set('devSaveDB', true)
+config.set('devSaveDB', false)
 if (config.get('devSaveDB')) {
     config.set('signInInfo', false)
 }
+
+function isDev() {
+    return process.mainModule.filename.indexOf('app.asar') === -1;
+}
+
+// if (isDev()) config.set('devSaveDB', true)
 
 ipcMain.on('emailAuth', (e, data) => {
     firebase.auth().signInWithEmailAndPassword(data.email, data.pass)
@@ -166,7 +175,53 @@ ipcMain.on('attemptAutoSignIn', () => {
     }
 })
 
-config.set('partyCode', '053467')
+var checkedForUpdates = false
+autoUpdater.setFeedURL({
+    provider: "github",
+    owner: "kidsonfilms-python-rules",
+    repo: 'DJFlame-Releases'
+})
+
+ipcMain.on('checkForUpdates', () => {
+    console.log('checking...')
+    autoUpdater.checkForUpdates();
+})
+
+
+/*checking for updates*/
+autoUpdater.on("checking-for-update", () => {
+    console.log('Checking for an Update')
+    mainWindow.webContents.send('checkingForUpdates')
+});
+
+/*No updates available*/
+autoUpdater.on("update-not-available", info => {
+    console.log('DJFlame up-to-date!')
+    checkedForUpdates = true
+    mainWindow.webContents.send('noUpdateAvailable')
+});
+
+/*New Update Available*/
+autoUpdater.on("update-available", info => {
+    console.log(`Update Available! info: ${info}`)
+    checkedForUpdates = true
+    mainWindow.webContents.send('updateAvailable', info)
+});
+
+/*Download Status Report*/
+autoUpdater.on("download-progress", progressObj => {
+    console.log(`Download Progress: ${progressObj}`)
+    mainWindow.webContents.send('updateDownloadProgress', progressObj)
+});
+
+/*Download Completion Message*/
+autoUpdater.on("update-downloaded", info => {
+    console.log('Download Finished!')
+    mainWindow.webContents.send('updateDownloadFinished')
+    autoUpdater.quitAndInstall()
+});
+
+// config.set('partyCode', partyID)
 ipcMain.on('joinLastParty', () => {
     if (config.get('partyCode')) {
         mainWindow.webContents.send('joinLastPartyCallback', true)
@@ -179,7 +234,7 @@ ipcMain.on('joinLastParty', () => {
 
 function getSceneSettings() {
     if (!config.get('devSaveDB')) {
-        db.collection(partyID).doc('metadata').get().then((doc) => {
+        db.collection('parties').doc(partyID).get().then((doc) => {
             if (doc.exists) {
                 console.log("Document data:", doc.data());
                 var data = doc.data()
@@ -227,21 +282,88 @@ function getSceneSettings() {
 ipcMain.on('sceneSettingsChange', (e, data) => {
     // console.log(data)
     config.set('sceneSettings', data)
-    db.collection(partyID).doc('metadata').set({
+    db.collection('parties').doc(partyID).set({
         guestPicks: data.general.guestPicks,
         guestPicksExternalDisplay: data.guestPicks.externalDisplay,
         guestPicksSongLenRandom: data.guestPicks.songLength.random,
         guestPicksSongLenRange1: data.guestPicks.songLength.range1,
         guestPicksSongLenRange2: data.guestPicks.songLength.range2,
         karaoke: data.general.karaoke
-    })
+    }, { merge: true })
 })
 
 ipcMain.on('requestSceneSettings', () => {
     mainWindow.webContents.send('requestedSceneSettings', config.get('sceneSettings'))
 })
 
+ipcMain.on('createNewParty', () => {
+    const userUID = config.get('user').uid
+    db.collection('users').doc(userUID).get().then((udata) => {
+        if (udata.data().partiesLeft > 0 || udata.data().role == 'ADMIN') {
+            var min = 100000;
+            var max = 999999;
+            const partyCodeGen = (Math.floor(Math.random() * (max - min + 1)) + min).toString();
+            console.log(partyCodeGen)
+            db.collection("parties").doc(partyCodeGen).set({
+                creator: userUID,
+                gpCurrentDocName: 0,
+                guestPicks: false,
+                guestPicksExternalDisplay: false,
+                guestPicksSongLenRandom: true,
+                guestPicksSongLenRange1: 22,
+                guestPicksSongLenRange2: 44,
+                karaoke: false
+            }).then(() => {
+                console.log('Created root party collection!')
+                db.collection("parties").doc(partyCodeGen).collection("guestPicks").doc("0").set({
+                    url: 'https://music.youtube.com/watch?v=cnRB2CgUpSw&list=RDCLAK5uy_mzpBFnAPcGS-4FYm4BzAY-Q3VmvNCQwxY',
+                    submitter: 'DJ'
+                }).then(() => {
+                    console.log('Created Party...')
+                    partyID = partyCodeGen
+                    getSceneSettings()
+                    db.runTransaction((transaction) => {
+                        // This code may get re-run multiple times if there are conflicts.
+                        return transaction.get(db.collection('users').doc(userUID)).then((uDoc) => {
+                            if (!uDoc.exists) {
+                                throw "Document does not exist!";
+                            }
+                            var newPartiesLeft = uDoc.data().partiesLeft - 1;
+                            transaction.update(db.collection('users').doc(userUID), { partiesLeft: newPartiesLeft }, {merge: true});
+                        });
+                    }).then(() => {
+                        console.log("Transaction successfully committed!");
+                    }).catch((error) => {
+                        console.log("Transaction failed: ", error);
+                    });
+                    config.set('partyCode', partyID)
+                    mainWindow.webContents.send('createNewPartyCallback')
+                })
+            })
+        } else {
+            // alert('You have used up all your parties this month, contact us if you think this is a mistake.')
+            console.log(data.data().partiesLeft)
+            console.log(userUID)
+            console.log(data.data())
+            mainWindow.webContents.send('noPartiesLeft')
+        }
+    })
+})
+
+ipcMain.on('requestPartyCode', () => {
+    mainWindow.webContents.send('requestedPartyCode', partyID)
+})
+
+ipcMain.on('enterDeveloperMode', () => {
+    partyID = '053467'
+    getSceneSettings()
+    mainWindow.loadFile('./index.html')
+})
+
+
+// ----------------------------
 // GUEST PICKS
+// ----------------------------
 
 class Song {
     constructor(url, probarDiv, docName, title, author, requester) {
@@ -301,15 +423,15 @@ function gpAddDb(songList) {
         })
     } else {
         songList.forEach((s, i) => {
-            db.collection(partyID).doc("Guest Picks").get().then((doc) => {
-                db.collection(partyID).doc('Guest Picks').collection('Queue').doc((doc.data().currentDocName + 1).toString()).set({
+            db.collection('parties').doc(partyID).get().then((doc) => {
+                db.collection('parties').doc(partyID).collection('guestPicks').doc((doc.data().gpCurrentDocName + 1).toString()).set({
                     url: s,
                     submitter: "DJ"
                 })
                     .then(function () {
                         console.log("Document successfully written!");
-                        db.collection(partyID).doc('Guest Picks').update({
-                            currentDocName: firebase.firestore.FieldValue.increment(1)
+                        db.collection('parties').doc(partyID).update({
+                            gpCurrentDocName: firebase.firestore.FieldValue.increment(1)
                         });
                     })
                     .catch(function (error) {
@@ -324,7 +446,7 @@ async function gpPlay(time, index, currentI) {
     // if (downloadedq.length - 1 < index) return Error('Did not download requested song index')
     console.info(`Playing ${index}.mp3...`)
     return new Promise(async (resolve) => {
-        var songInstance = Soundplayer.play(`./music/${index}.mp3`, function (err) {
+        var songInstance = Soundplayer.play(`${__dirname}/music/${index}.mp3`, function (err) {
             if (err) console.error(err);
             console.log("Audio finished");
             resolve()
@@ -420,9 +542,10 @@ async function gpDownload(link, index) {
     const probar = q[index].progressDiv
     var vidRaw = `?${link.split('?')[1]}`
     var v = new URLSearchParams(vidRaw).get('v');
+    const ffmpegPath = isDev() ? `${__dirname}/assets/ffmpeg/ffmpeg` : `${__dirname}/../app.asar.unpacked/assets/ffmpeg/ffmpeg`
     const DOWNLOADER = new ytdl({
-        "ffmpegPath": "./assets/ffmpeg/ffmpeg", // || FFmpeg binary location
-        "outputPath": "./music/", //  || Output file location (default: the home directory)
+        "ffmpegPath": ffmpegPath, // || FFmpeg binary location
+        "outputPath": `${__dirname}/music/`, //  || Output file location (default: the home directory)
         "youtubeVideoQuality": "highestaudio", //   || Desired video quality (default: highestaudio
         "progressTimeout": 0, //    || Interval in ms for the progress reports (default: 1000)
     });
@@ -553,15 +676,20 @@ function launchExternalDisplay() {
             webPreferences: {
                 nodeIntegration: true,
                 enableRemoteModule: true,
-                contextIsolation: false
+                contextIsolation: false,
+                devTools: false
             }
         })
-        // win.setKiosk(true);
-        win.loadFile(`./windows/externalDisplaysGP/externalDisplayGP${dchoice}.html`)
+        win.setKiosk(true);
+        win.loadFile(`${__dirname}/windows/externalDisplaysGP/externalDisplayGP${dchoice}.html`)
         win.show()
         ipcMain.on('stop', () => {
             win.close()
             win = null
+        })
+
+        ipcMain.on('requestPartyCodeExDisplay', () => {
+            win.webContents.send('requestedPartyCode', partyID)
         })
 
         win.on('close', () => win = null)
@@ -606,7 +734,7 @@ ipcMain.on('newExternalDisplayDataTest', () => {
 
 ipcMain.on('gpUse', () => {
     if (!config.get('devSaveDB')) {
-        db.collection(partyID).doc("Guest Picks").collection('Queue')
+        db.collection('parties').doc(partyID).collection('guestPicks')
             .onSnapshot(function (snapshot) {
                 snapshot.docChanges().forEach(function (change) {
                     if (change.type === "added") {
@@ -649,66 +777,10 @@ ipcMain.on('requestCurrentRunningData', () => {
 ipcMain.on('clearQueue', () => q = [])
 
 function gpDeleteSong(docName) {
-    db.collection(partyID).doc('Guest Picks').collection('Queue').doc(docName).delete().then(() => {
+    db.collection('parties').doc(partyID).collection('guestPicks').doc(docName).delete().then(() => {
         q.splice(docName, 1)
         song.remove()
     })
 }
 
 ipcMain.on('gpDeleteSong', (e, docname) => gpDeleteSong(docname))
-// var gpStartButton = document.getElementById("startGuestPicks");
-// var gpUseButton = document.getElementById("useGuestPicks");
-// var gpSkipButton = document.getElementById("skipGuestPicks");
-// var gpAddSongButton = document.getElementById("addSongGuestPicks");
-// gpStartButton.onclick = (event) => {
-//     console.log(event);
-//     gpStart()
-//     switchButton('stop')
-// }
-
-// gpUseButton.onclick = () => {
-//     gpUse()
-// }
-
-// gpSkipButton.onclick = () => {
-//     console.log('SKIPPING...')
-//     skip()
-// }
-
-// gpAddSongButton.onclick = () => {
-//     if (addSongWindow) {
-//         addSongWindow.focus()
-//         return
-//     }
-
-//     addSongWindow = new BrowserWindow({
-//         width: 600,
-//         height: 400,
-//         vibrancy: 'ultra-dark',
-//         maximizable: false,
-//         minimizable: false,
-//         frame: false, //TODO: CHANGE TO FALSE
-//         resizable: false,
-//         contextIsolation: true,
-//         webPreferences: {
-//             nodeIntegration: true,
-//             enableRemoteModule: true,
-//             contextIsolation: false,
-//         },
-//         alwaysOnTop: true,
-//         show: false,
-//     });
-
-//     addSongWindow.loadURL(`file://${__dirname}/gpAddSong.html`)
-
-//     addSongWindow.show()
-
-//     addSongWindow.on('closed', function () {
-//         addSongWindow = null
-//     })
-// }
-
-// ipcRenderer.on('gpAddSongRen', (e, songList) => {
-//     console.log(songList)
-//     gpAddDb(songList)
-// })

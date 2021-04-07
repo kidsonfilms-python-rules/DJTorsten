@@ -269,75 +269,76 @@
         }
 
         .page {
-    display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 95%;
-  width: 100%;
-  /* border: 2px dashed #f69c55; */
-}
-.center {
-    display: table-cell;
-  vertical-align: middle;
-  justify-content: center;
-  text-align: center;
-}
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 95%;
+            width: 100%;
+            /* border: 2px dashed #f69c55; */
+        }
 
-.center h1 {
-    color: rgb(226,226,226);
-    text-transform: uppercase;
-    letter-spacing: 5px;
-    font-size: 40px;
-    z-index: 1000;
-    text-align: center;
-}
+        .center {
+            display: table-cell;
+            vertical-align: middle;
+            justify-content: center;
+            text-align: center;
+        }
 
-.center p {
-    text-align: center;
-}
+        .center h1 {
+            color: rgb(226, 226, 226);
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            font-size: 40px;
+            z-index: 1000;
+            text-align: center;
+        }
 
-.center input {
-    width: 100%;
-}
+        .center p {
+            text-align: center;
+        }
 
-input:focus,
-select:focus,
-textarea:focus,
-button:focus {
-    outline: none;
-}
+        .center input {
+            width: 100%;
+        }
 
-.center .text {
-    width: 100%;
-    margin-bottom: 10px;
-    background-color: rgb(24, 24, 24);
-    border-radius: 100px;
-    padding: 10px;
-    border-style: solid;
-    color: rgb(226,226,226);
-}
+        input:focus,
+        select:focus,
+        textarea:focus,
+        button:focus {
+            outline: none;
+        }
 
-.center h2 {
-    color: rgb(226,226,226);
-    text-transform: uppercase;
-    letter-spacing: 5px;
-    font-size: 20px;
-    text-align: center;
-}
+        .center .text {
+            width: 100%;
+            margin-bottom: 10px;
+            background-color: rgb(24, 24, 24);
+            border-radius: 100px;
+            padding: 10px;
+            border-style: solid;
+            color: rgb(226, 226, 226);
+        }
 
-.loader{
-    height: 100px;
-    width: 20%;
-    text-align: center;
-    padding: 0.5em;
-    display: inline-block;
-    vertical-align: top;
-}
+        .center h2 {
+            color: rgb(226, 226, 226);
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            font-size: 20px;
+            text-align: center;
+        }
 
-.loader svg path,
-svg rect{
-  fill: #df49a6;
-}
+        .loader {
+            height: 100px;
+            width: 20%;
+            text-align: center;
+            padding: 0.5em;
+            display: inline-block;
+            vertical-align: top;
+        }
+
+        .loader svg path,
+        svg rect {
+            fill: #df49a6;
+        }
     </style>
 </head>
 
@@ -373,7 +374,7 @@ svg rect{
     </div>
 
     <div class="joinParty">
-        <h2>Request a Song from the DJFlame App <br>Party Code <b>053467</b></h2>
+        <h2>Request a Song from the DJFlame App <br>Party Code <b id="partyCode">053467</b></h2>
     </div>
 
     <div class="clock">
@@ -434,6 +435,11 @@ svg rect{
         const waitingForData = document.querySelector('.waitingForData')
 
 
+        ipcRenderer.send('requestPartyCodeExDisplay')
+        ipcRenderer.on('requestedPartyCode', (err, code) => {
+            console.log(code)
+            document.getElementById('partyCode').innerText = code
+        })
         ipcRenderer.on('newExternalDisplayData', (e, d) => {
             console.log("New Data: \n", d)
             waitingForData.style.display = 'none'
@@ -522,18 +528,18 @@ svg rect{
 
         // ipcRenderer.send('newExternalDisplayDataTest', '')
 
-        document.onkeydown = function(evt) {
-    evt = evt || window.event;
-    var isEscape = false;
-    if ("key" in evt) {
-        isEscape = (evt.key === "Escape" || evt.key === "Esc");
-    } else {
-        isEscape = (evt.keyCode === 27);
-    }
-    if (isEscape) {
-        thisWindow.close()
-    }
-};
+        document.onkeydown = function (evt) {
+            evt = evt || window.event;
+            var isEscape = false;
+            if ("key" in evt) {
+                isEscape = (evt.key === "Escape" || evt.key === "Esc");
+            } else {
+                isEscape = (evt.keyCode === 27);
+            }
+            if (isEscape) {
+                thisWindow.close()
+            }
+        };
 
     </script>
 </body>

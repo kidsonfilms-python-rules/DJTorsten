@@ -129,15 +129,16 @@
 
   <main>
     <h1>Scenes</h1>
+    <p id="sceneText" style="display: none;"><i>Go to <a style="color: white;" href="./sceneSettings.html">Scene Settings</a> and enable/add a scene</i></p>
     <div class="scene-divs">
-      <div class="scene-card">
+      <div class="scene-card" id="gpCard" style="display: none;">
         <i class="fas fa-user-friends fa-2x"></i>
         <h1>Main</h1>
         <p>Guest Picks</p>
         <input type="submit" value="USE" class="submit" id="useGuestPicks">
         <input type="submit" value="START" class="submit" id="startGuestPicks" style="display: none;">
       </div>
-      <div class="scene-card">
+      <!-- <div class="scene-card">
         <i class="fas fa-microphone-stand fa-2x"></i>
         <h1>Karoake</h1>
         <p>Karaoke</p>
@@ -148,7 +149,7 @@
         <h1>Grad Video</h1>
         <p>Custom</p>
         <input type="submit" value="USE" class="submit" id="start">
-      </div>
+      </div> -->
     </div>
     <div class="guestpicksqueuediv" id="gpqueuediv" style="display: none;">
       <h1>Guest Picks Queue</h1>
@@ -202,6 +203,17 @@
 
   <script src="js/app.js"></script>
   <script src="js/appstyles.js"></script>
+  <script>
+    ipcRenderer.send('requestSceneSettings', '')
+ipcRenderer.on('requestedSceneSettings' , (e, sceneSettings) => {
+  console.log(sceneSettings)
+  if (sceneSettings.general.guestPicks) {
+     document.getElementById('gpCard').style.display = 'block'
+  } else {
+    document.getElementById('sceneText').style.display = 'block'
+  }
+})
+  </script>
 </body>
 
 </html>

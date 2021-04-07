@@ -1,16 +1,19 @@
 const { ipcRenderer } = require("electron");
 
 function createParty() {
-  window.location.replace("index.html");
+  ipcRenderer.send('createNewParty')
+  ipcRenderer.on('createNewPartyCallback', () => {
+    window.location.replace("index.html");
+  })
 }
 
 function checkInternet(cb) {
   require('dns').lookup('google.com', function (err) {
-      if (err && err.code == "ENOTFOUND") {
-          cb(false);
-      } else {
-          cb(true);
-      }
+    if (err && err.code == "ENOTFOUND") {
+      cb(false);
+    } else {
+      cb(true);
+    }
   })
 }
 window.addEventListener('offline', () => checkInternet((r) => {
@@ -45,3 +48,12 @@ var joinLastElement = document.getElementById('joinLast')
 joinLastElement.onclick = () => {
   joinLast()
 }
+
+ipcRenderer.on('noPartiesLeft', () => {
+  alert('You have run out of parties for this month, if you think this this is a mistake, contact us through djflamedev@gmail.com')
+})
+
+Mousetrap.bind(['command+shift+option+d', 'ctrl+shift+alt+d'], function() { 
+	alert("Entering Developer Mode...");
+  ipcRenderer.send('enterDeveloperMode')
+});

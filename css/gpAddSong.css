@@ -18,6 +18,7 @@ body {
     /* Internet Explorer/Edge */
     user-select: none;
     -webkit-app-region: drag;
+    backdrop-filter: blur(10px);
 }
 
 h1 {

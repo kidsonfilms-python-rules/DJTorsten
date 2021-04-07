@@ -28,7 +28,7 @@
   align-items: center;
     justify-content: center;
     flex-direction: column;
-    background-image: url("../../assets/patternbg.png");
+    background-image: url("../assets/patternbg.png");
     background-repeat: repeat;
     background-size: 15%;
 }
@@ -40,7 +40,7 @@ form {
     border-radius: var(--rad);
   }
   
-  input, button {
+  form input, form button {
     height: var(--height);
     font-family: var(--font-fam);
     border: 0;
@@ -48,7 +48,7 @@ form {
     font-size: 0.9rem;
   }
   
-  input[type=search] {
+  form input[type=search] {
     outline: 0;
     width: 100%;
     background: var(--color-light);
@@ -63,7 +63,7 @@ form {
     position: relative;
   }
   
-  button {
+  form button {
     display: none;
     position: absolute;
     top: 0;
@@ -74,27 +74,27 @@ form {
     border-radius: 0 var(--rad) var(--rad) 0;
   }
   
-  input:not(:-moz-placeholder-shown) {
+  form input:not(:-moz-placeholder-shown) {
     border-radius: var(--rad) 0 0 var(--rad);
     width: calc(100% - var(--btn-width));
   }
   
-  input:not(:-ms-input-placeholder) {
+  form input:not(:-ms-input-placeholder) {
     border-radius: var(--rad) 0 0 var(--rad);
     width: calc(100% - var(--btn-width));
   }
   
-  input:not(:placeholder-shown) {
+  form input:not(:placeholder-shown) {
     border-radius: var(--rad) 0 0 var(--rad);
     width: calc(100% - var(--btn-width));
   }
-  input:not(:-moz-placeholder-shown) + button {
+  form input:not(:-moz-placeholder-shown) + form button {
     display: block;
   }
-  input:not(:-ms-input-placeholder) + button {
+  form input:not(:-ms-input-placeholder) + form button {
     display: block;
   }
-  input:not(:placeholder-shown) + button {
+  form input:not(:placeholder-shown) + form button {
     display: block;
   }
   
@@ -207,7 +207,7 @@ article:hover {
     justify-content: center;
 }
 
-li p {
+.installSteps li p {
     margin: 12px 38px;
 }
 

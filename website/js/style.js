@@ -38,3 +38,12 @@ function navSlide() {
 }
 
 navSlide();
+
+const links = document.getElementsByTagName('a')
+var linksarray = []
+for(var i=0; i<links.length; i++) {
+  linksarray.push(links[i]);
+}
+linksarray.forEach((a) => {
+  a.href = a.href.replace('.html', '')
+})
