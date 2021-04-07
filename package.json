@@ -16,7 +16,7 @@
   },
   "testEnvironment": "node",
   "dependencies": {
-    "electron-store": "^7.0.2",
+    "electron-store": "^7.0.3",
     "firebase": "^8.3.1",
     "node-mp3-player": "^1.0.3",
     "on-change": "^2.2.3",
