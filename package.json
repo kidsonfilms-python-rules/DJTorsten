@@ -1,20 +1,20 @@
 {
   "name": "djflame",
   "productName": "DJFlame",
-  "version": "3.0.0",
-  "description": "",
+  "version": "2021.4.10",
+  "description": "DJFlame is a consumer Auto DJ Application.",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder -mwl",
+    "dist": "electron-builder -ml",
     "dist-mac": "electron-builder --mac",
     "publish": "electron-builder -mwl --publish always"
   },
   "repository": "https://github.com/kidsonfilms-python-rules/DJTorsten",
   "keywords": [],
-  "author": "Siddharth Ray",
-  "license": "READ LICENSE.md",
+  "author": "DJFlame",
+  "license": "LICENSE.md",
   "devDependencies": {
     "@octokit/core": "^3.3.1",
     "Console": "^1.1.0",
@@ -101,10 +101,6 @@
           "path": "/Applications"
         }
       ]
-    },
-    "win": {
-      "target": "nsis",
-      "icon": "assets/appIcons/DJFlame Logo.ico"
     },
     "nsis": {
       "oneClick": false,

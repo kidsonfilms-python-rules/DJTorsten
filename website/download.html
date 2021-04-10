@@ -409,11 +409,25 @@
             </div>
             <div class="footerSection">
                 <h4>Follow Us</h4>
-                <p>yea, we have nothing...</p>
+                <ol>
+                    <li>
+                        <p><a href="https://twitter.com/DJFlameApp">Twitter</a></p>
+                    </li>
+                    <li>
+                        <p><a href="https://reddit.com/u/DJFlameApp">Reddit</a></p>
+                    </li>
+                </ol>
             </div>
             <div class="footerSection">
-                <h4>Support Us</h4>
-                <p>again, nothing</p>
+                <h4>Company</h4>
+                <ol>
+                    <li>
+                        <p><a href="./about.html">About Us</a></p>
+                    </li>
+                    <li>
+                        <p><a href="./support">Support</a></p>
+                    </li>
+                </ol>
             </div>
             <div class="footerSection">
                 <h4>Information</h4>
@@ -430,7 +444,7 @@
                 </ol>
             </div>
         </div>
-        <p>&#169; 2021 DJFlame</p>
+        <p id="copyright">&#169; 2021 DJFlame</p>
     </footer>
 
     <div class="errorScreen" id="errorScreen">
@@ -471,7 +485,7 @@
             <div class="center">
                 <h1>Sign Up</h1>
                 <p>Signing Up is required to use the DJFlame Desktop App</p>
-                <form class="form-signup" onsubmit="signUp()" name="form" autocomplete="off">
+                <div class="form-signup">
                     <label for="email">Email</label>
                     <input class="form-styling" type="email" name="email" placeholder="stonks@gmetothemoon.com"
                         autocomplete="off" id="email" />
@@ -489,7 +503,7 @@
         </div>
     </div>
 
-    
+
 
     <script src="/__/firebase/8.3.1/firebase-app.js"></script>
 
@@ -497,6 +511,7 @@
      https://firebase.google.com/docs/web/setup#available-libraries -->
     <script src="/__/firebase/8.3.1/firebase-analytics.js"></script>
     <script src="/__/firebase/8.3.1/firebase-auth.js"></script>
+    <script src="/__/firebase/8.3.1/firebase-firestore.js"></script>
 
     <!-- Initialize Firebase -->
     <script src="/__/firebase/init.js"></script>
@@ -504,6 +519,11 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         var os = urlParams.get('os')
+        const db = firebase.firestore()
+
+        // var form = document.getElementById("signUpForm");
+        // function handleForm(event) { event.preventDefault(); }
+        // form.addEventListener('submit', handleForm);
 
         function signUp() {
             const emailElement = document.getElementById('email')
@@ -549,38 +569,55 @@
                     document.getElementById('signUpScreen').style.display = 'none'
                     document.getElementById('signUpScreen').style.visibility = 'hidden'
                     document.getElementById('signUpScreen').style.opacity = '0'
+                    console.log('Signed In!')
 
-                    if (!os) {
-                        console.log('No URL Params, getting OS')
-                        var OSName = "Unknown";
-                        if (window.navigator.userAgent.indexOf("Windows NT 10.0") != -1) OSName = "Windows";
-                        if (window.navigator.userAgent.indexOf("Windows NT 6.3") != -1) OSName = "Windows";
-                        if (window.navigator.userAgent.indexOf("Windows NT 6.2") != -1) OSName = "Windows";
-                        if (window.navigator.userAgent.indexOf("Windows NT 6.1") != -1) OSName = "Windows";
-                        if (window.navigator.userAgent.indexOf("Windows NT 6.0") != -1) OSName = "Windows";
-                        if (window.navigator.userAgent.indexOf("Windows NT 5.1") != -1) OSName = "Windows";
-                        if (window.navigator.userAgent.indexOf("Windows NT 5.0") != -1) OSName = "Windows";
-                        if (window.navigator.userAgent.indexOf("Mac") != -1) OSName = "Mac";
-                        if (window.navigator.userAgent.indexOf("X11") != -1) OSName = "UNIX";
-                        if (window.navigator.userAgent.indexOf("Linux") != -1) OSName = "Linux";
-                        if (OSName != 'Unknown') {
-                            if (OSName == 'Windows') {
-                                os = 'windows'
-                            } else if (OSName == 'Mac') {
-                                os = 'macos'
-                            } else if (OSName == 'Linux') {
-                                os = 'linux'
+                    db.collection('users').doc(user.uid).set({
+                        name: "DJ",
+                        partiesLeft: 5,
+                        role: "MEMBER"
+                    }).then(() => {
+                        console.log('Created Doc!')
+                        if (!os) {
+                            console.log('No URL Params, getting OS')
+                            var OSName = "Unknown";
+                            if (window.navigator.userAgent.indexOf("Windows NT 10.0") != -1) OSName = "Windows";
+                            if (window.navigator.userAgent.indexOf("Windows NT 6.3") != -1) OSName = "Windows";
+                            if (window.navigator.userAgent.indexOf("Windows NT 6.2") != -1) OSName = "Windows";
+                            if (window.navigator.userAgent.indexOf("Windows NT 6.1") != -1) OSName = "Windows";
+                            if (window.navigator.userAgent.indexOf("Windows NT 6.0") != -1) OSName = "Windows";
+                            if (window.navigator.userAgent.indexOf("Windows NT 5.1") != -1) OSName = "Windows";
+                            if (window.navigator.userAgent.indexOf("Windows NT 5.0") != -1) OSName = "Windows";
+                            if (window.navigator.userAgent.indexOf("Mac") != -1) OSName = "Mac";
+                            if (window.navigator.userAgent.indexOf("X11") != -1) OSName = "UNIX";
+                            if (window.navigator.userAgent.indexOf("Linux") != -1) OSName = "Linux";
+                            if (OSName != 'Unknown') {
+                                if (OSName == 'Windows') {
+                                    os = 'windows'
+                                } else if (OSName == 'Mac') {
+                                    os = 'macos'
+                                } else if (OSName == 'Linux') {
+                                    os = 'linux'
+                                }
                             }
-                        }
 
-                        if (os) {
-                            console.log(`Found OS! Downloading DJFlame for ${os}`)
-                            if (os == 'windows') {
-                                window.location.href = 'https://github.com/kidsonfilms-python-rules/DJFlame-Releases/releases/latest/download/DJFlame.Setup.exe'
-                            } else if (os == 'macos') {
-                                window.location.href = 'https://github.com/kidsonfilms-python-rules/DJFlame-Releases/releases/latest/download/DJFlame.dmg'
-                            } else if (os == 'linux') {
-                                window.location.href = 'https://github.com/kidsonfilms-python-rules/DJFlame-Releases/releases/latest/download/DJFlame.AppImage'
+                            if (os) {
+                                console.log(`Found OS! Downloading DJFlame for ${os}`)
+                                if (os == 'windows') {
+                                    window.open('https://github.com/kidsonfilms-python-rules/DJFlame-Releases/releases/latest/download/DJFlame.Setup.exe', '_blank');
+                                } else if (os == 'macos') {
+                                    // window.location.href = 'https://github.com/kidsonfilms-python-rules/DJFlame-Releases/releases/latest/download/DJFlame.dmg'
+                                    window.open('https://github.com/kidsonfilms-python-rules/DJFlame-Releases/releases/latest/download/DJFlame.dmg', '_blank')
+                                } else if (os == 'linux') {
+                                    // window.location.href = 'https://github.com/kidsonfilms-python-rules/DJFlame-Releases/releases/latest/download/DJFlame.AppImage'
+                                    windoe.open('https://github.com/kidsonfilms-python-rules/DJFlame-Releases/releases/latest/download/DJFlame.AppImage', '_blank')
+                                } else {
+                                    var errorScreen = document.getElementById('errorScreen')
+                                    errorScreen.style.display = 'block'
+                                    errorScreen.style.visibility = 'visible'
+                                    errorScreen.style.opacity = '1'
+                                    document.body.style.overflowY = 'hidden'
+                                    document.getElementById('footer').style.display = 'none'
+                                }
                             } else {
                                 var errorScreen = document.getElementById('errorScreen')
                                 errorScreen.style.display = 'block'
@@ -590,30 +627,29 @@
                                 document.getElementById('footer').style.display = 'none'
                             }
                         } else {
-                            var errorScreen = document.getElementById('errorScreen')
-                            errorScreen.style.display = 'block'
-                            errorScreen.style.visibility = 'visible'
-                            errorScreen.style.opacity = '1'
-                            document.body.style.overflowY = 'hidden'
-                            document.getElementById('footer').style.display = 'none'
+                            console.log(`Downloading DJFlame for ${os}`)
+                            if (os == 'windows') {
+                                window.open('https://github.com/kidsonfilms-python-rules/DJFlame-Releases/releases/latest/download/DJFlame.Setup.exe', '_blank');
+                            } else if (os == 'macos') {
+                                window.open('https://github.com/kidsonfilms-python-rules/DJFlame-Releases/releases/latest/download/DJFlame.dmg', '_blank')
+                            } else if (os == 'linux') {
+                                windoe.open('https://github.com/kidsonfilms-python-rules/DJFlame-Releases/releases/latest/download/DJFlame.AppImage', '_blank')
+                            } else {
+                                var errorScreen = document.getElementById('errorScreen')
+                                errorScreen.style.display = 'block'
+                                errorScreen.style.visibility = 'visible'
+                                errorScreen.style.opacity = '1'
+                                document.body.style.overflowY = 'hidden'
+                                document.getElementById('footer').style.display = 'none'
+                            }
                         }
-                    } else {
-                        console.log(`Downloading DJFlame for ${os}`)
-                        if (os == 'windows') {
-                            window.location.href = 'https://github.com/kidsonfilms-python-rules/DJFlame-Releases/releases/latest/download/DJFlame.Setup.exe'
-                        } else if (os == 'macos') {
-                            window.location.href = 'https://github.com/kidsonfilms-python-rules/DJFlame-Releases/releases/latest/download/DJFlame.dmg'
-                        } else if (os == 'linux') {
-                            window.location.href = 'https://github.com/kidsonfilms-python-rules/DJFlame-Releases/releases/latest/download/DJFlame.AppImage'
-                        } else {
-                            var errorScreen = document.getElementById('errorScreen')
-                            errorScreen.style.display = 'block'
-                            errorScreen.style.visibility = 'visible'
-                            errorScreen.style.opacity = '1'
-                            document.body.style.overflowY = 'hidden'
-                            document.getElementById('footer').style.display = 'none'
-                        }
-                    }
+
+                    }).catch((err) => {
+                        var errorCode = err.code
+                        var errorMessage = err.message
+                        console.error(`${errorCode}: ${errorMessage}`)
+                    })
+
 
                 })
                 .catch((error) => {

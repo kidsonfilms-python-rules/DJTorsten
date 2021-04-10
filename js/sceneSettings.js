@@ -5,12 +5,13 @@ const onChange = require('on-change');
 var fs = require('fs');
 const path = require('path');
 
-var files = fs.readdirSync(`${__dirname}/music/`);
+const outPath = (process.platform == 'win32' || process.platform == 'linux') ? `${app.getPath('appData')}/.djflame/music/` : `${__dirname}/music/`
+var files = fs.readdirSync(outPath);
 console.log(files)
-const fi = files.indexOf('Rick Astley - Never Gonna Give You Up (Video).mp3');
-if (fi > -1) {
-  files.splice(fi, 1);
-}
+// const fi = files.indexOf('Rick Astley - Never Gonna Give You Up (Video).mp3');
+// if (fi > -1) {
+//   files.splice(fi, 1);
+// }
 const clearCacheButton = document.getElementById('clearMusicCacheGPButton')
 console.log(files)
 if (files.length == 0) {

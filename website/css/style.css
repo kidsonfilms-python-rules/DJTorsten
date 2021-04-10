@@ -263,12 +263,13 @@ transform: rotate(45deg) translate(-5px, -6px);
 }
 
 .homeMain h6 {
-    margin-top: 40vh;
+    top: 90vh;
     margin-left: 2.5vw;
     text-align: start;
     font-size: 1em;
     font-weight: 200;
     font-family: 'Poppins', sans-serif;
+    position: absolute;
 }
 
 .homeMain span {

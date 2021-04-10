@@ -1,14 +1,4 @@
 const navbar = document.querySelector('.navbar');
-let sticky = document.body.offsetTop;
-const navbarScroll = () => {
-  if (window.pageYOffset > sticky) {
-    navbar.classList.add('sticky')
-  } else {
-    navbar.classList.remove('sticky');
-  }
-};
-
-window.onscroll = navbarScroll;
 
 function navSlide() {
     const burger = document.querySelector(".burger");

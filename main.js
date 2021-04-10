@@ -123,6 +123,21 @@ function isDev() {
 
 // if (isDev()) config.set('devSaveDB', true)
 
+if (process.platform == 'darwin') {
+    if (!fs.existsSync(`${__dirname}/music/`)) {
+        fs.mkdirSync(`${__dirname}/music/`);
+    }
+} else if (process.platform == 'win32' || process.platform == 'linux') {
+    if (!fs.existsSync(`${app.getPath('appData')}/.djflame/music/`)) {
+        if (!fs.existsSync(`${app.getPath('appData')}/.djflame/`)) {
+            fs.mkdirSync(`${app.getPath('appData')}/.djflame/`);
+            fs.mkdirSync(`${app.getPath('appData')}/.djflame/music/`);
+        } else {
+            fs.mkdirSync(`${app.getPath('appData')}/.djflame/music/`);
+        }
+    }
+}
+
 ipcMain.on('emailAuth', (e, data) => {
     firebase.auth().signInWithEmailAndPassword(data.email, data.pass)
         .then((userCredential) => {
@@ -446,7 +461,9 @@ async function gpPlay(time, index, currentI) {
     // if (downloadedq.length - 1 < index) return Error('Did not download requested song index')
     console.info(`Playing ${index}.mp3...`)
     return new Promise(async (resolve) => {
-        var songInstance = Soundplayer.play(`${__dirname}/music/${index}.mp3`, function (err) {
+        var dirPathMusic = `${__dirname}/music`
+        if (process.platform == 'win32' || process.platform == 'linux') dirPathMusic = `${app.getPath('appData')}/.djflame/music` 
+        var songInstance = Soundplayer.play(`${dirPathMusic}/${index}.mp3`, function (err) {
             if (err) console.error(err);
             console.log("Audio finished");
             resolve()
@@ -543,9 +560,10 @@ async function gpDownload(link, index) {
     var vidRaw = `?${link.split('?')[1]}`
     var v = new URLSearchParams(vidRaw).get('v');
     const ffmpegPath = isDev() ? `${__dirname}/assets/ffmpeg/ffmpeg` : `${__dirname}/../app.asar.unpacked/assets/ffmpeg/ffmpeg`
+    const outPath = (process.platform == 'win32' || process.platform == 'linux') ? `${app.getPath('appData')}/.djflame/music/` : `${__dirname}/music/`
     const DOWNLOADER = new ytdl({
         "ffmpegPath": ffmpegPath, // || FFmpeg binary location
-        "outputPath": `${__dirname}/music/`, //  || Output file location (default: the home directory)
+        "outputPath": outPath, //  || Output file location (default: the home directory)
         "youtubeVideoQuality": "highestaudio", //   || Desired video quality (default: highestaudio
         "progressTimeout": 0, //    || Interval in ms for the progress reports (default: 1000)
     });
