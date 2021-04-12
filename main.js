@@ -16,7 +16,7 @@ function createWindow() {
             nodeIntegration: true,
             contextIsolation: false,
             enableRemoteModule: true,
-            devTools: false
+            // devTools: false
         },
         icon: `${__dirname}/assets/DJFlame Logo.svg`
     })
@@ -322,6 +322,7 @@ ipcMain.on('createNewParty', () => {
             db.collection("parties").doc(partyCodeGen).set({
                 creator: userUID,
                 gpCurrentDocName: 0,
+                gpNowPlaying: -1,
                 guestPicks: false,
                 guestPicksExternalDisplay: false,
                 guestPicksSongLenRandom: true,
@@ -423,6 +424,10 @@ async function gpAdd(url, docName) {
     var v = new URLSearchParams(vidRaw).get('v');
     var videoInfo = await yts({ videoId: v })
     q.push(new Song(url, '', docName, videoInfo.title, videoInfo.author.name, 'DJ'))
+    q.sort(function(a, b) { 
+        return parseInt(a.docName) - parseInt(b.docName);
+    })
+    console.log(q)
     mainWindow.webContents.send('gpAdd', { url, docName })
 }
 
@@ -461,6 +466,9 @@ async function gpPlay(time, index, currentI) {
     // if (downloadedq.length - 1 < index) return Error('Did not download requested song index')
     console.info(`Playing ${index}.mp3...`)
     return new Promise(async (resolve) => {
+        db.collection('parties').doc(partyID).set({
+            gpNowPlaying: currentI
+        }, {merge: true})
         var dirPathMusic = `${__dirname}/music`
         if (process.platform == 'win32' || process.platform == 'linux') dirPathMusic = `${app.getPath('appData')}/.djflame/music` 
         var songInstance = Soundplayer.play(`${dirPathMusic}/${index}.mp3`, function (err) {
@@ -628,6 +636,9 @@ async function gpMain(index, downloadingStatus) {
     }
     return new Promise(async (resolve) => {
         eventEmitter.on('stop', () => {
+            db.collection('parties').doc(partyID).set({
+                gpNowPlaying: -1
+            }, {merge: true})
             resolve();
             return 'Stopped by DJ';
         })
@@ -762,7 +773,7 @@ ipcMain.on('gpUse', () => {
                         // console.log(change.doc._delegate._document)
                         // console.log(change.doc._delegate._document.key)
                         // console.log(change.doc._delegate._document.key.path)
-                        gpAdd(change.doc.data().url, change.doc._delegate._document.key.path.segments[3])
+                        gpAdd(change.doc.data().url, change.doc.id)
                     }
                     if (change.type === "removed") {
                         console.log("Removed Song: ", change.doc.data());

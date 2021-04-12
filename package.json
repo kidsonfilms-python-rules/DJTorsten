@@ -1,7 +1,7 @@
 {
   "name": "djflame",
   "productName": "DJFlame",
-  "version": "2021.4.10",
+  "version": "2021.4.11",
   "description": "DJFlame is a consumer Auto DJ Application.",
   "main": "main.js",
   "scripts": {

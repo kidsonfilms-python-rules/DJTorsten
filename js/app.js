@@ -77,7 +77,26 @@ async function tryFillData() {
                 song.appendChild(deletei)
                 song.appendChild(probar)
                 console.log('Added Probar')
+                if (parseInt(docName) < parseInt(q[q.length - 1].docName)) {
+                  q.sort(function(a, b) {
+                    return parseInt(a.docName) - parseInt(b.docName);
+                  });
+                  var docNameQ = []
+                  for (song in q) {
+                    if (parseInt(q[song].docName) < parseInt(docName)) {
+                    docNameQ.push(parseInt(q[song].docName))
+                    }
+                  }
+                  console.log(docNameQ)
+                  docNameQ.sort(function(a, b) {
+                    return a - b;
+                  });
+                  console.log(q)
+            
+                  document.querySelector(`#song-${docNameQ[docNameQ.length - 1]}`).insertAdjacentHTML('afterend', `<div class="song" id="song-${docName}">${song.innerHTML}</div>`);
+                } else {
                 main.appendChild(song)
+                }
 
                 var vidRaw = `?${url.split('?')[1]}`
                 var v = new URLSearchParams(vidRaw).get('v');
@@ -252,7 +271,26 @@ ipcRenderer.on('gpAdd', async (e, data) => {
     song.appendChild(deletei)
     song.appendChild(probar)
     console.log('Added Probar')
+    if (parseInt(docName) < parseInt(q[q.length - 1].docName)) {
+      q.sort(function(a, b) {
+        return parseInt(a.docName) - parseInt(b.docName);
+      });
+      var docNameQ = []
+      for (song in q) {
+        if (parseInt(q[song].docName) < parseInt(docName)) {
+        docNameQ.push(parseInt(q[song].docName))
+        }
+      }
+      console.log(docNameQ)
+      docNameQ.sort(function(a, b) {
+        return a - b;
+      });
+      console.log(q)
+
+      document.querySelector(`#song-${docNameQ[docNameQ.length - 1]}`).insertAdjacentHTML('afterend', `<div class="song" id="song-${docName}">${song.innerHTML}</div>`);
+    } else {
     main.appendChild(song)
+    }
 
     document.getElementById('deleteSongElement').onclick = () => {ipcRenderer.send('gpDeleteSong', docName); song.remove()}
         const instance = tippy(song, {
