@@ -28,7 +28,7 @@
   "testEnvironment": "node",
   "dependencies": {
     "electron-store": "^7.0.3",
-    "electron-updater": "^4.3.8",
+    "electron-updater": "^4.3.9",
     "firebase": "^8.3.1",
     "fluent-ffmpeg": "^2.1.2",
     "node-mp3-player": "^1.0.3",
