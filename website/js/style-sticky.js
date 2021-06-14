@@ -38,4 +38,4 @@ linksarray.forEach((a) => {
   a.href = a.href.replace('.html', '')
 })
 
-document.getElementById('copyright').innerText = `&#169; ${new Date().getFullYear()} DJFlame`
+document.getElementById('copyright').innerText = `© ${new Date().getFullYear()} DJFlame`

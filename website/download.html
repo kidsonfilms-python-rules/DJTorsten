@@ -498,7 +498,7 @@
                     <input type="checkbox" id="checkbox" required name="termsAndService" />
                     <label for="checkbox" id="ToSCheckbox"><span class="ui"></span>I accept DJFlame's <a href="">Terms
                             and Conditions</a> and <a href="">Privacy Policy</a></label>
-                    <a onclick="signUp()" class="btn-signup">Sign Up</a>
+                    <p onclick="signUp()" class="btn-signup">Sign Up</p>
             </div>
         </div>
     </div>
@@ -571,11 +571,8 @@
                     document.getElementById('signUpScreen').style.opacity = '0'
                     console.log('Signed In!')
 
-                    db.collection('users').doc(user.uid).set({
-                        name: "DJ",
-                        partiesLeft: 5,
-                        role: "MEMBER"
-                    }).then(() => {
+                    user.sendEmailVerification()
+                   
                         console.log('Created Doc!')
                         if (!os) {
                             console.log('No URL Params, getting OS')
@@ -644,11 +641,7 @@
                             }
                         }
 
-                    }).catch((err) => {
-                        var errorCode = err.code
-                        var errorMessage = err.message
-                        console.error(`${errorCode}: ${errorMessage}`)
-                    })
+                    
 
 
                 })
