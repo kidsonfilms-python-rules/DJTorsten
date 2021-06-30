@@ -50,7 +50,7 @@ function createCanaryWindow() {
     canaryWindow = new BrowserWindow({
         width: 1000,
         height: 750,
-        show: true,
+        show: false,
         closable: false,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
