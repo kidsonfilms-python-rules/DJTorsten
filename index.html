@@ -32,27 +32,31 @@
             </g>
           </svg> -->
           <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M368 255.5C368 320.946 314.946 374 249.5 374C184.054 374 131 320.946 131 255.5C131 190.054 184.054 137 249.5 137C314.946 137 368 190.054 368 255.5ZM136.29 255.5C136.29 318.024 186.976 368.71 249.5 368.71C312.024 368.71 362.71 318.024 362.71 255.5C362.71 192.976 312.024 142.29 249.5 142.29C186.976 142.29 136.29 192.976 136.29 255.5Z" fill="white"/>
-            <circle cx="256" cy="256" r="256" fill="url(#paint0_linear)"/>
-            <ellipse cx="249.5" cy="256" rx="215.5" ry="216" fill="url(#paint1_linear)"/>
-            <circle cx="250" cy="255" r="77" fill="url(#paint2_linear)"/>
-            <circle cx="250.5" cy="255.5" r="46.5" fill="black"/>
+            <path
+              d="M368 255.5C368 320.946 314.946 374 249.5 374C184.054 374 131 320.946 131 255.5C131 190.054 184.054 137 249.5 137C314.946 137 368 190.054 368 255.5ZM136.29 255.5C136.29 318.024 186.976 368.71 249.5 368.71C312.024 368.71 362.71 318.024 362.71 255.5C362.71 192.976 312.024 142.29 249.5 142.29C186.976 142.29 136.29 192.976 136.29 255.5Z"
+              fill="white" />
+            <circle cx="256" cy="256" r="256" fill="url(#paint0_linear)" />
+            <ellipse cx="249.5" cy="256" rx="215.5" ry="216" fill="url(#paint1_linear)" />
+            <circle cx="250" cy="255" r="77" fill="url(#paint2_linear)" />
+            <circle cx="250.5" cy="255.5" r="46.5" fill="black" />
             <defs>
-            <linearGradient id="paint0_linear" x1="512" y1="266.433" x2="-1.84757e-05" y2="269.643" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#D67EFF"/>
-            <stop offset="1" stop-color="#DF49A6"/>
-            </linearGradient>
-            <linearGradient id="paint1_linear" x1="168.587" y1="40" x2="403.307" y2="426.551" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#404040"/>
-            <stop offset="0.582929"/>
-            </linearGradient>
-            <linearGradient id="paint2_linear" x1="173" y1="211" x2="306" y2="266.5" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#FF0000"/>
-            <stop offset="1" stop-color="#FF7A00" stop-opacity="0.96"/>
-            </linearGradient>
+              <linearGradient id="paint0_linear" x1="512" y1="266.433" x2="-1.84757e-05" y2="269.643"
+                gradientUnits="userSpaceOnUse">
+                <stop stop-color="#D67EFF" />
+                <stop offset="1" stop-color="#DF49A6" />
+              </linearGradient>
+              <linearGradient id="paint1_linear" x1="168.587" y1="40" x2="403.307" y2="426.551"
+                gradientUnits="userSpaceOnUse">
+                <stop stop-color="#404040" />
+                <stop offset="0.582929" />
+              </linearGradient>
+              <linearGradient id="paint2_linear" x1="173" y1="211" x2="306" y2="266.5" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#FF0000" />
+                <stop offset="1" stop-color="#FF7A00" stop-opacity="0.96" />
+              </linearGradient>
             </defs>
-            </svg>
-            
+          </svg>
+
         </a>
       </li>
 
@@ -121,7 +125,8 @@
                 class="fa-primary"></path>
             </g>
           </svg>
-          <span class="link-text">Themify <span style="color: rgb(252, 122, 35);font-size: 0.75em; font-weight:bold;">beta</span></span>
+          <span class="link-text">Themify <span
+              style="color: rgb(252, 122, 35);font-size: 0.75em; font-weight:bold;">beta</span></span>
         </a>
       </li>
     </ul>
@@ -129,7 +134,8 @@
 
   <main>
     <h1>Scenes</h1>
-    <p id="sceneText" style="display: none;"><i>Go to <a style="color: white;" href="./sceneSettings.html">Scene Settings</a> and enable/add a scene</i></p>
+    <p id="sceneText" style="display: none;"><i>Go to <a style="color: white;" href="./sceneSettings.html">Scene
+          Settings</a> and enable/add a scene</i></p>
     <div class="scene-divs">
       <div class="scene-card" id="gpCard" style="display: none;">
         <i class="fas fa-user-friends fa-2x"></i>
@@ -163,56 +169,108 @@
             <div class="song"><p>song 1</p> <i class="fas fa-trash"></i></div> -->
       </div>
     </div>
+    <br><br><br>
+    <div class="audioController" id="audio-controller" style="display: none;visibility: none;">
+      <input type="range" id="seek-slider" max="100" value="0">
+      <div class="audioControllerBody">
+        <div class="audioControlButtons">
+          <i class="fas fa-pause" style="font-size: 25px;" id="playPauseButton"></i>
+          <i class="fas fa-forward" style="font-size: 20px;" id="audioControllerSkip"></i>
+          <span style="font-size: 12px;line-height: 1.2;font-weight: 400;color: #aaa;" id="controller-time">0:00 / 0:00</span>
+        </div>
+        <div class="audioControllerSongInfo">
+          <img id="audioControllerThumbnail" src="https://lh3.googleusercontent.com/weYQWfEwWNPOuAm34geXN1LkSYPlsJay78NnQgHC3PKsyZcdvBHIsMtqoFh3rioA4XgMdHMQd3h6vH6mbA=w60-h60-l90-rj" draggable="false">
+          <div style="margin-left: 10px;">
+            <h4 id="audioControllerTitle">--</h4>
+            <p id="audioControllerSubHeading">-- • --</p>
+          </div>
+        </div>
+        <div class="audioControlButtons">
+          <i class="far fa-heart" id="audioControllerHeart"></i>
+          <i class="far fa-flag" id="audioControllerReport" onclick="MicroModal.show('modal-1');"></i>
+          <i class="far fa-volume" id="audioControllerMute"></i>
+        </div>
+      </div>
+    </div>
   </main>
-
+  
   <div id="sceneCardsRightClickMenuTemplate" style="display: none; visibility: hidden;">
     <div class="menuItem">
       <a onclick="gpUse()">Use</a>
     </div>
-      <div class="rightClickMenuSeperator"></div>
-      <div class="menuItem">
-        <a href="./sceneSettings.html" style="color: #b9bbbe;">Edit Scene</a>
-      </div>
+    <div class="rightClickMenuSeperator"></div>
+    <div class="menuItem">
+      <a href="./sceneSettings.html" style="color: #b9bbbe;">Edit Scene</a>
+    </div>
   </div>
 
   <div id="songCardsRightClickMenuTemplate" style="display: none; visibility: hidden;">
     <div class="menuItem dangerMenuItem">
       <a id="deleteSongElement" class="dangerMenuText">Delete</a>
     </div>
-      <div class="rightClickMenuSeperator"></div>
-      <div class="menuItem">
-        <a onclick="">Report Song</a>
+    <div class="rightClickMenuSeperator"></div>
+    <div class="menuItem">
+      <a onclick="">Report Song</a>
+    </div>
+    <div class="menuItem">
+      <a onclick="">Report User</a>
+    </div>
+    <div class="rightClickMenuSeperator"></div>
+    <div class="menuItem">
+      <a onclick="">Rate Song</a>
+    </div>
+    <div class="menuItem">
+      <a onclick="">Favorite Song</a>
+    </div>
+    <div class="menuItem">
+      <a onclick="">Award Song</a>
+    </div>
+  </div>
+
+
+  <div class="modal micromodal-slide" id="modal-1" aria-hidden="true">
+    <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+      <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
+        <header class="modal__header">
+          <h2 class="modal__title" id="modal-1-title">
+            Report Song/User
+          </h2>
+        </header>
+          <p>
+            Please confirm you are reporting the following: <br><br>
+            User: <b>kidsonfilms</b><br>
+            Song: <b>Never Gonna Give You Up</b><br><br>
+            We will contact you with more details if the claims are found true.
+          </p>
+          <div class="labelRow">
+            <label>Ban User From Party</label>
+            <input type="checkbox" class="toggle" id="externalDisplayToggle">
+          </div>
+          <br>
+        <footer class="modal__footer">
+          <button class="modal__btn modal__btn-primary">Report</button>
+          <button class="modal__btn" data-micromodal-close aria-label="Close this dialog window">Close</button>
+        </footer>
       </div>
-      <div class="menuItem">
-        <a onclick="">Report User</a>
-      </div>
-      <div class="rightClickMenuSeperator"></div>
-      <div class="menuItem">
-        <a onclick="">Rate Song</a>
-      </div>
-      <div class="menuItem">
-        <a onclick="">Favorite Song</a>
-      </div>
-      <div class="menuItem">
-        <a onclick="">Award Song</a>
-      </div>
+    </div>
   </div>
 
   <script src="https://unpkg.com/@popperjs/core@2"></script>
-    <script src="https://unpkg.com/tippy.js@6"></script>
+  <script src="https://unpkg.com/tippy.js@6"></script>
+  <script src="https://unpkg.com/micromodal/dist/micromodal.min.js"></script>
 
   <script src="js/app.js"></script>
   <script src="js/appstyles.js"></script>
   <script>
     ipcRenderer.send('requestSceneSettings', '')
-ipcRenderer.on('requestedSceneSettings' , (e, sceneSettings) => {
-  console.log(sceneSettings)
-  if (sceneSettings.general.guestPicks) {
-     document.getElementById('gpCard').style.display = 'block'
-  } else {
-    document.getElementById('sceneText').style.display = 'block'
-  }
-})
+    ipcRenderer.on('requestedSceneSettings', (e, sceneSettings) => {
+      console.log(sceneSettings)
+      if (sceneSettings.general.guestPicks) {
+        document.getElementById('gpCard').style.display = 'block'
+      } else {
+        document.getElementById('sceneText').style.display = 'block'
+      }
+    })
   </script>
 </body>
 

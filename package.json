@@ -27,10 +27,12 @@
   },
   "testEnvironment": "node",
   "dependencies": {
+    "discord-rpc": "^4.0.1",
     "electron-store": "^7.0.3",
     "electron-updater": "^4.3.8",
     "firebase": "^8.3.1",
     "fluent-ffmpeg": "^2.1.2",
+    "jquery": "^3.6.0",
     "node-mp3-player": "^1.0.3",
     "on-change": "^2.2.3",
     "play-sound": "^1.1.3",

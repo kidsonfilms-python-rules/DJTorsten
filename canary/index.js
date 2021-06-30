@@ -1,8 +1,11 @@
-exports.default =  class Canary {
-    constructor(window, discordRPC) {
-        this.window = window
+const { ipcMain } = require('electron')
+
+exports.default = class Canary {
+    constructor(ipc, discordRPC, eventEmitter) {
+        this.ipc = ipc
         this.discordRPC = discordRPC
         this.queue = []
+        this.eventEmitter = eventEmitter
 
         // DATA CLASSES
         class Song {
@@ -55,35 +58,53 @@ exports.default =  class Canary {
     getId(url) {
         const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
         const match = url.match(regExp);
-    
+
         return (match && match[2].length === 11)
-          ? match[2]
-          : null;
+            ? match[2]
+            : null;
     }
 
-    play(song) {
-        console.log(`[CANARY] Playing Song... SONG: ${song.url}`)
-        const ytEmbed = `<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/${this.getId(song.url)}?controls=0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
-        console.log(ytEmbed)
+    play(song, songLen, index) {
+        return new Promise((resolve, reject) => {
+            console.log(`[CANARY] Playing Song... SONG: ${song.url}`)
+            // console.log({ id: this.getId(song.url), time: songLen*1000 })
+            this.ipc.send('canaryPlay', { id: this.getId(song.url), time: songLen*1000, index: index })
 
 
-        this.discordRPC.request('SET_ACTIVITY', {
-            pid: process.pid,
-            activity: {
-                details: `Playing ${song.title}`,
-                state: `Song #${song.docName}`,
-                assets: {
-                    large_image: 'test',
-                    large_text: 'Guest Picks',
-                    small_image: 'djflame_logo',
-                    small_text: 'DJFlame',
-                },
-                buttons: [
-                    {
-                        label: 'Join Party', url: 'https://djflame.tech'
-                    }
-                ]
+            this.discordRPC.request('SET_ACTIVITY', {
+                pid: process.pid,
+                activity: {
+                    details: `Playing ${song.title}`,
+                    state: `Song ${parseInt(index) + 1}/${this.queue.length}`,
+                    assets: {
+                        large_image: 'test',
+                        large_text: 'Guest Picks',
+                        small_image: 'djflame_logo',
+                        small_text: 'DJFlame',
+                    },
+                    buttons: [
+                        {
+                            label: 'Join Party', url: 'https://djflame.tech'
+                        }
+                    ]
+                }
+            })
+
+            this.eventEmitter.on('stop', () => {
+                this.ipc.send('canaryStop')
+            })
+
+            this.eventEmitter.on('skip', () => {
+                this.ipc.send('canaryStop')
+            })
+
+            var stopListener = () => { 
+                console.log('[CANARY] Song Stopped...')
+                resolve()
+                ipcMain.removeListener('canaryStopped', stopListener)
             }
+            ipcMain.on('canaryStopped', stopListener)
+
         })
     }
 }

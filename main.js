@@ -2,7 +2,23 @@
 const electron = require('electron')
 const { app, BrowserWindow, ipcMain, desktopCapturer } = electron
 const path = require('path')
+const { default: Canary } = require('./Canary')
+const http = require('http')
+const rpc = require("discord-rpc");
+var rpcClient = null;
+var canary = null;
 
+
+let server;
+server = http.createServer((req, res) => {
+const filePath = path.join(app.getAppPath(), req.url);
+const file = fs.readFileSync(filePath);
+res.end(file.toString());
+if (req.url.includes('index.js'))
+   server.close();
+}).listen(8080);
+
+var canaryWindow = null
 var mainWindow = null;
 
 function createWindow() {
@@ -30,11 +46,47 @@ function createWindow() {
     // mainWindow.webContents.openDevTools()
 }
 
+function createCanaryWindow() {
+    canaryWindow = new BrowserWindow({
+        width: 1000,
+        height: 750,
+        show: true,
+        closable: false,
+        webPreferences: {
+            preload: path.join(__dirname, 'preload.js'),
+            nodeIntegration: true,
+            contextIsolation: false,
+            enableRemoteModule: true,
+            // devTools: false
+        },
+        icon: `${__dirname}/assets/DJFlame Logo.svg`
+    })
+    canaryWindow.loadURL('http://localhost:8080/windows/canary.html')
+}
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
-    createWindow()
+app.whenReady().then(async () => {
+    await createWindow()
+    await createCanaryWindow()
+
+    canaryWindow.webContents.on('did-finish-load', function () {
+        console.log('[CANARY] Loading Engine...')
+        rpcClient = new rpc.Client({ transport: 'ipc' });
+        canary = new Canary(canaryWindow.webContents, rpcClient, eventEmitter)
+        canaryWindow.webContents.session.webRequest.onHeadersReceived({ urls: [ "*://*/*" ] },
+        (d, c)=>{
+          if(d.responseHeaders['X-Frame-Options']){
+            delete d.responseHeaders['X-Frame-Options'];
+          } else if(d.responseHeaders['x-frame-options']) {
+            delete d.responseHeaders['x-frame-options'];
+          }
+    
+          c({cancel: false, responseHeaders: d.responseHeaders});
+        }
+      );
+    })
 
     app.on('activate', function () {
         // On macOS it's common to re-create a window in the app when the
@@ -118,7 +170,7 @@ if (config.get('devSaveDB')) {
 }
 
 function isDev() {
-    return process.mainModule.filename.indexOf('app.asar') === -1;
+    return process.main.filename.indexOf('app.asar') === -1;
 }
 
 // if (isDev()) config.set('devSaveDB', true)
@@ -345,7 +397,7 @@ ipcMain.on('createNewParty', () => {
                                 throw "Document does not exist!";
                             }
                             var newPartiesLeft = uDoc.data().partiesLeft - 1;
-                            transaction.update(db.collection('users').doc(userUID), { partiesLeft: newPartiesLeft }, {merge: true});
+                            transaction.update(db.collection('users').doc(userUID), { partiesLeft: newPartiesLeft }, { merge: true });
                         });
                     }).then(() => {
                         console.log("Transaction successfully committed!");
@@ -376,18 +428,22 @@ ipcMain.on('enterDeveloperMode', () => {
     mainWindow.loadFile('./index.html')
 })
 
+if (!Array.isArray(config.get('heartSongs'))) {
+    config.set('heartSongs', [])
+}
 
 // ----------------------------
 // GUEST PICKS
 // ----------------------------
 
 class Song {
-    constructor(url, probarDiv, docName, title, author, requester) {
+    constructor(url, probarDiv, docName, title, author, thumbnail, requester) {
         this.url = url
         this.progressDiv = probarDiv
         this.docName = docName
         this.title = title
         this.author = author
+        this.thumbnail = thumbnail
         this.requester = requester
     }
 }
@@ -424,7 +480,11 @@ async function gpAdd(url, docName) {
     var v = new URLSearchParams(vidRaw).get('v');
     var videoInfo = await yts({ videoId: v })
     q.push(new Song(url, '', docName, videoInfo.title, videoInfo.author.name, 'DJ'))
-    q.sort(function(a, b) { 
+    q.sort(function (a, b) {
+        return parseInt(a.docName) - parseInt(b.docName);
+    })
+    canary.add(new Song(url, '', docName, videoInfo.title, videoInfo.author.name, videoInfo.thumbnail, 'DJ'))
+    canary.queue.sort(function (a, b) {
         return parseInt(a.docName) - parseInt(b.docName);
     })
     console.log(q)
@@ -468,9 +528,9 @@ async function gpPlay(time, index, currentI) {
     return new Promise(async (resolve) => {
         db.collection('parties').doc(partyID).set({
             gpNowPlaying: currentI
-        }, {merge: true})
+        }, { merge: true })
         var dirPathMusic = `${__dirname}/music`
-        if (process.platform == 'win32' || process.platform == 'linux') dirPathMusic = `${app.getPath('appData')}/.djflame/music` 
+        if (process.platform == 'win32' || process.platform == 'linux') dirPathMusic = `${app.getPath('appData')}/.djflame/music`
         var songInstance = Soundplayer.play(`${dirPathMusic}/${index}.mp3`, function (err) {
             if (err) console.error(err);
             console.log("Audio finished");
@@ -556,6 +616,77 @@ async function gpPlay(time, index, currentI) {
     })
 }
 
+async function canaryPlay(song, songLen, index) {
+    return new Promise(async (resolve, reject) => {
+    canary.play(song, songLen, index).then(() => {
+        resolve()
+    })
+    mainWindow.webContents.send('canaryNewSong')
+
+    if (win) {
+        // var result = downloadedq.filter(obj => {
+        //     return obj.i === index
+        // })
+        // console.log(result)
+        const q = canary.queue
+        if (q.length - (index + 1) < 4) {
+            var queueList = []
+            for (var i = index + 1; (q.length - i) > 0; i++) {
+                queueList.push({
+                    title: q[i].title,
+                    author: q[i].author,
+                    requester: q[i].requester
+                })
+                console.log(queueList)
+            }
+            console.log(queueList)
+            data = {
+                nowPlaying: {
+                    title: q[index].title,
+                    author: q[index].author,
+                    thumbnail: q[index].thumbnail.split('?')[0],
+                    requester: q[index].requester,
+                    likes: "0"
+                },
+                queue: queueList
+            }
+        } else {
+            data = {
+                nowPlaying: {
+                    title: q[index].title,
+                    author: q[index].author,
+                    thumbnail: q[index].thumbnail.split('?')[0],
+                    requester: q[index].requester,
+                    likes: "0"
+                },
+                queue: [
+                    {
+                        title: q[index + 1].title,
+                        author: q[index + 1].author,
+                        requester: q[index + 1].requester
+                    },
+                    {
+                        title: q[index + 2].title,
+                        author: q[index + 2].author,
+                        requester: q[index + 2].requester
+                    },
+                    {
+                        title: q[index + 3].title,
+                        author: q[index + 3].author,
+                        requester: q[index + 3].requester
+                    },
+                    {
+                        title: q[index + 4].title,
+                        author: q[index + 4].author,
+                        requester: q[index + 4].requester
+                    },
+                ]
+            }
+        }
+        win.webContents.send('newExternalDisplayData', data)
+    }})
+}
+
 async function gpDownload(link, index) {
     if (downloadedq.map(a => a.url).includes(link)) {
         var linkMap = await downloadedq.map(a => a.url)
@@ -616,7 +747,7 @@ async function gpStart() {
             console.info('Stopped Status, Stopping Function.')
             return 'Stopped by DJ';
         }
-        if (index < q.length) {
+        if (index < canary.queue.length) {
             await gpMain(index, downloadingStatus).then(() => {
                 console.log('Song Done!')
                 index = index + 1
@@ -638,28 +769,67 @@ async function gpMain(index, downloadingStatus) {
         eventEmitter.on('stop', () => {
             db.collection('parties').doc(partyID).set({
                 gpNowPlaying: -1
-            }, {merge: true})
+            }, { merge: true })
             resolve();
             return 'Stopped by DJ';
         })
-        downloadingStatus = "DOWNLOADING"
-        gpDownload(q[index].url, index)
-        eventEmitter.on(`downloadFinished ${index}`, async (i) => {
-            downloadingStatus = "PLAYING"
-            console.log(`Playing Index ${index}, From ${i}`)
-            var sceneSetting = config.get('sceneSettings')
-            var songLength = 40
-            if (sceneSetting.guestPicks.songLength.random) {
-                songLength = await Math.floor(Math.random() * (sceneSetting.guestPicks.songLength.range2 - sceneSetting.guestPicks.songLength.range1 + 1) + sceneSetting.guestPicks.songLength.range1);
-            } else {
-                songLength = await sceneSetting.guestPicks.songLength.range1
-            }
-            console.log('playing for ', songLength, ' seconds')
-            await gpPlay(songLength, i, index)
-            resolve('Done')
+        var sceneSetting = config.get('sceneSettings')
+        var songLength = 40
+        if (sceneSetting.guestPicks.songLength.random) {
+            songLength = await Math.floor(Math.random() * (sceneSetting.guestPicks.songLength.range2 - sceneSetting.guestPicks.songLength.range1 + 1) + sceneSetting.guestPicks.songLength.range1);
+        } else {
+            songLength = await sceneSetting.guestPicks.songLength.range1
+        }
+        console.log('playing for ', songLength, ' seconds')
+
+        canaryPlay(canary.queue[index], songLength, index).then(() => {
+            resolve()
         })
+        // resolve('Done')
+        // downloadingStatus = "DOWNLOADING"
+        // gpDownload(q[index].url, index)
+        // eventEmitter.on(`downloadFinished ${index}`, async (i) => {
+        //     downloadingStatus = "PLAYING"
+        //     console.log(`Playing Index ${index}, From ${i}`)
+        //     await gpPlay(songLength, i, index)
+        //     resolve('Done')
+        // })
     })
 }
+
+ipcMain.on('canaryPlayTime', (e, d) => {
+    // console.log(d)
+    mainWindow.webContents.send('canaryTimeChange', d)
+})
+
+ipcMain.on('canaryChangePlayHead', (e, d) => {
+    canaryWindow.webContents.send('canaryChangePlayHead', d)
+})
+ipcMain.on('canaryPlay', () => {
+    canaryWindow.webContents.send('canaryControllerPlay')
+})
+ipcMain.on('canaryPause', () => {
+    canaryWindow.webContents.send('canaryPause')
+})
+ipcMain.on('canarySkip', () => {
+    canaryWindow.webContents.send('canarySkip')
+})
+ipcMain.on('canaryMute', (e, d) => {
+    canaryWindow.webContents.send('canaryMute', d)
+})
+ipcMain.on('canaryHeartSong', async (e, d) => {
+    var favSongs = await config.get('heartSongs')
+    if (favSongs.includes(d)) {
+        console.log('Removing new Fav Song')
+        config.set('heartSongs', favSongs.filter(e => e !== d))
+        console.log(config.get('heartSongs'))
+    } else {
+        console.log('Setting new Fav Song')
+        favSongs.push(d)
+        config.set('heartSongs', favSongs)
+        console.log(config.get('heartSongs'))
+    }
+})
 
 
 function stop() {
@@ -709,7 +879,7 @@ function launchExternalDisplay() {
                 devTools: false
             }
         })
-        win.setKiosk(true);
+        // win.setKiosk(true);
         win.loadFile(`${__dirname}/windows/externalDisplaysGP/externalDisplayGP${dchoice}.html`)
         win.show()
         ipcMain.on('stop', () => {

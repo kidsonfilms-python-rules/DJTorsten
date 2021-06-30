@@ -144,7 +144,7 @@
     font-size: 20px;
   }
   
-  .navbar:hover .logo svg,img {
+  .navbar:hover .logo svg, .logo img {
     transform: rotate(-180deg);
   }
   
@@ -1411,4 +1411,365 @@ input[type=number] {
     margin-top: 4px;
     margin-bottom: 4px;
     border-bottom: 1px solid hsla(0,0%,100%,0.06);;
+}
+
+.audioController {
+  background-color: #0f0f0f;
+  position: fixed;
+  bottom: 0;
+  width: calc(100% - 5rem);
+  --seek-before-width: 0%;
+  --volume-before-width: 100%;
+  --buffered-width: 0%;
+  margin-left: -0.8rem;
+}
+
+.audioControlButtons {
+  /* flex: none; */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 0.5;
+}
+
+.audioControlButtons i {
+  transition: all 500ms;
+  cursor: pointer;
+}
+
+.audioControlButtons i, .audioControlButtons span {
+  margin-right: 10px;
+}
+
+.audioControllerBody {
+  padding: 10px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding-left: 20px;
+  flex: 0.5;
+}
+
+.audioControllerSongInfo {
+  display: flex;
+  flex-direction: row;
+  flex: 2;
+}
+
+.audioControllerSongInfo img {
+  height: 40px;
+}
+.audioControllerSongInfo p, .audioControllerSongInfo h4 {
+  margin: 0px;
+  font-size: small;
+}
+
+.audioController input[type="range"] {
+  width: 100%;
+}
+
+.audioController input[type="range"] {
+  /* position: relative; */
+  -webkit-appearance: none;
+  /* width: 48%; */
+  margin: 0;
+  padding: 0;
+  height: 19px;
+  /* margin: 30px 2.5% 20px 2.5%;
+  float: left; */
+  outline: none;
+  background: transparent;
+  position: relative;
+  margin: -8px 0px 0px 0px;
+}
+
+#audio-player-container {
+  --seek-before-width: 0%;
+--volume-before-width: 100%;
+--buffered-width: 0%;
+position: relative;
+margin: 100px 2.5% auto 2.5%;
+width: 95%;
+max-width: 500px;
+height: 132px;
+background: var(--primary-color);
+}
+#audio-player-container::before {
+position: absolute;
+content: '';
+width: calc(100% + 4px);
+height: calc(100% + 4px);
+left: -2px;
+top: -2px;
+background: linear-gradient(to left, #007db5, #ff8a00);
+z-index: -1;
+}
+
+input[type="range"]::before {
+    position: absolute;
+    content: "";
+    top: 8px;
+    left: 0;
+    width: var(--seek-before-width);
+    height: 3px;
+    background-color: #007db5;
+    cursor: pointer;
+}
+
+.audioController input[type="range"]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 3px;
+  cursor: pointer;
+  background: linear-gradient(to right, transparent var(--buffered-width), transparent var(--buffered-width));
+}
+.audioController input[type="range"]::before {
+  position: absolute;
+  content: "";
+  top: 8px;
+  left: 0;
+  width: var(--seek-before-width);
+  height: 3px;
+  background-color: #df49a6;
+  cursor: pointer;
+}
+.audioController input[type="range"]::-webkit-slider-thumb {
+  position: relative;
+  -webkit-appearance: none;
+  box-sizing: content-box;
+  border: 1px solid #df49a6;
+  height: 10px;
+  width: 10px;
+  border-radius: 50%;
+  background-color: #df49a6;
+  cursor: pointer;
+  margin: -4px 0 0 0;
+  opacity: 0;
+  transition: all linear 200ms;
+}
+.audioController input[type="range"]:active::-webkit-slider-thumb {
+  transform: scale(1.2);
+  background: #df49a6;
+  opacity: 1;
+}
+
+.audioController input[type="range"]:hover::-webkit-slider-thumb {
+  transform: scale(1.2);
+  background: #df49a6;
+  opacity: 1;
+}
+
+.audioController:hover input[type="range"]::-webkit-slider-thumb {
+  transform: scale(1.2);
+  background: #df49a6;
+  opacity: 1;
+}
+
+.audioController input[type="range"]::-moz-range-track {
+  width: 100%;
+  height: 3px;
+  cursor: pointer;
+  background: linear-gradient(to right, rgba(0, 125, 181, 0.6) var(--buffered-width), rgba(0, 125, 181, 0.2) var(--buffered-width));
+}
+input[type="range"]::-moz-range-progress {
+  background-color: #007db5;
+}
+.audioController input[type="range"]::-moz-focus-outer {
+  border: 0;
+}
+.audioController input[type="range"]::-moz-range-thumb {
+  box-sizing: content-box;
+  border: 1px solid #007db5;
+  height: 15px;
+  width: 15px;
+  border-radius: 50%;
+  background-color: #fff;
+  cursor: pointer;
+}
+.audioController input[type="range"]:active::-moz-range-thumb {
+  transform: scale(1.2);
+  background: #007db5;
+}
+.audioController input[type="range"]::-ms-track {
+  width: 100%;
+  height: 3px;
+  cursor: pointer;
+  background: transparent;
+  border: solid transparent;
+  color: transparent;
+}
+.audioController input[type="range"]::-ms-fill-lower {
+  background-color: #007db5;
+}
+.audioController input[type="range"]::-ms-fill-upper {
+  background: linear-gradient(to right, rgba(0, 125, 181, 0.6) var(--buffered-width), rgba(0, 125, 181, 0.2) var(--buffered-width));
+}
+.audioController input[type="range"]::-ms-thumb {
+  box-sizing: content-box;
+  border: 1px solid #007db5;
+  height: 15px;
+  width: 15px;
+  border-radius: 50%;
+  background-color: #fff;
+  cursor: pointer;
+}
+.audioController input[type="range"]:active::-ms-thumb {
+  transform: scale(1.2);
+  background: #007db5;
+}
+
+.audioController .heartActive {
+  color: red;
+  text-shadow: 0 0 12px #ff0000;
+}
+
+
+
+/* MODAL */
+.modal {
+  font-family: -apple-system,BlinkMacSystemFont,avenir next,avenir,helvetica neue,helvetica,ubuntu,roboto,noto,segoe ui,arial,sans-serif;
+}
+
+.modal__overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal__container {
+  background-color: #202020;
+  padding: 30px;
+  max-width: 500px;
+  max-height: 100vh;
+  border-radius: 4px;
+  overflow-y: auto;
+  box-sizing: border-box;
+  color: white;
+}
+
+.modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal__title {
+  margin-top: 0;
+  margin-bottom: 0;
+  font-weight: 600;
+  font-size: 1.25rem;
+  line-height: 1.25;
+  color: #df49a6;
+  box-sizing: border-box;
+}
+
+.modal__close {
+  background: transparent;
+  border: 0;
+}
+
+.modal__header .modal__close:before { content: "\2715"; }
+
+.modal__content {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+  color: white;
+}
+
+.modal__btn {
+  font-size: .875rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: .5rem;
+  padding-bottom: .5rem;
+  background-color: #333333;
+  color: white;
+  border-radius: .25rem;
+  border-style: none;
+  border-width: 0;
+  cursor: pointer;
+  -webkit-appearance: button;
+  text-transform: none;
+  overflow: visible;
+  line-height: 1.15;
+  margin: 0;
+  will-change: transform;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  transition: -webkit-transform .25s ease-out;
+  transition: transform .25s ease-out;
+  transition: transform .25s ease-out,-webkit-transform .25s ease-out;
+}
+
+.modal__btn:focus, .modal__btn:hover {
+  -webkit-transform: scale(1.05);
+  transform: scale(1.05);
+}
+
+.modal__btn-primary {
+  background-color: #df49a6;
+  color: #ffffff;
+}
+
+
+
+/**************************\
+  Demo Animation Style
+\**************************/
+@keyframes mmfadeIn {
+    from { opacity: 0; }
+      to { opacity: 1; }
+}
+
+@keyframes mmfadeOut {
+    from { opacity: 1; }
+      to { opacity: 0; }
+}
+
+@keyframes mmslideIn {
+  from { transform: translateY(15%); }
+    to { transform: translateY(0); }
+}
+
+@keyframes mmslideOut {
+    from { transform: translateY(0); }
+    to { transform: translateY(-10%); }
+}
+
+.micromodal-slide {
+  display: none;
+}
+
+.micromodal-slide.is-open {
+  display: block;
+}
+
+.micromodal-slide[aria-hidden="false"] .modal__overlay {
+  animation: mmfadeIn .3s cubic-bezier(0.0, 0.0, 0.2, 1);
+}
+
+.micromodal-slide[aria-hidden="false"] .modal__container {
+  animation: mmslideIn .3s cubic-bezier(0, 0, .2, 1);
+}
+
+.micromodal-slide[aria-hidden="true"] .modal__overlay {
+  animation: mmfadeOut .3s cubic-bezier(0.0, 0.0, 0.2, 1);
+}
+
+.micromodal-slide[aria-hidden="true"] .modal__container {
+  animation: mmslideOut .3s cubic-bezier(0, 0, .2, 1);
+}
+
+.micromodal-slide .modal__container,
+.micromodal-slide .modal__overlay {
+  will-change: transform;
 }
