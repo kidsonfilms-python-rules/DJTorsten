@@ -182,7 +182,7 @@
 
         ipc.on('updateDownloadProgress', (e, downloadObj) => {
             console.log(downloadObj)
-            text.innerText = `Update Downloading, ${Math.floor(parseFloat(downloadObj.percent.toString().replace('%', ''))).toString()}`
+            text.innerText = `Downloading Update... ${Math.floor(parseFloat(downloadObj.percent.toString().replace('%', ''))).toString()}%`
         })
 
         ipc.on('updateDownloadFinished', () => {

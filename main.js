@@ -37,6 +37,9 @@ function createWindow() {
         icon: `${__dirname}/assets/DJFlame Logo.svg`
     })
     mainWindow.removeMenu()
+    if (process.platform != 'darwin') {
+        mainWindow.maximize()
+    }
     // and load the index.html of the app.
     mainWindow.loadFile('loading.html').then(() => {
         mainWindow.show()
@@ -100,6 +103,11 @@ app.whenReady().then(async () => {
 // explicitly with Cmd + Q.
 app.on('window-all-closed', function () {
     if (process.platform !== 'darwin') app.quit()
+})
+
+// Destroy Canary Engine before quitting
+app.on('before-quit', () => {
+    canaryWindow.destroy()
 })
 
 // In this file you can include the rest of your app's specific main process

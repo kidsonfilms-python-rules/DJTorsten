@@ -1,14 +1,15 @@
 {
   "name": "djflame",
   "productName": "DJFlame",
-  "version": "2021.4.11",
+  "version": "2021.7.2",
   "description": "DJFlame is a consumer Auto DJ Application.",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder -ml",
+    "dist": "electron-builder -mw",
     "dist-mac": "electron-builder --mac",
+    "dist-linux": "electron-builder --linux",
     "publish": "electron-builder -mwl --publish always"
   },
   "repository": "https://github.com/kidsonfilms-python-rules/DJTorsten",
@@ -19,6 +20,7 @@
     "Console": "^1.1.0",
     "electron": "^13.1.4",
     "electron-builder": "^22.11.7",
+    "electron-notarize": "^1.0.0",
     "http": "*",
     "node-fetch": "^2.6.1",
     "readline-sync": "^1.4.10",
@@ -32,21 +34,14 @@
     "firebase": "^8.6.8",
     "fluent-ffmpeg": "^2.1.2",
     "jquery": "^3.6.0",
-    "node-mp3-player": "^1.0.3",
     "on-change": "^3.0.2",
     "play-sound": "^1.1.3",
-    "tippy.js": "^6.3.1",
     "youtube-mp3-downloader": "^0.7.7",
     "yt-search": "^2.9.0",
     "ytdl-core": "^4.8.3"
   },
   "build": {
-    "asar": false,
-    "asarUnpack": [
-      "assets/ffmpeg",
-      "node-modules",
-      "node-modules/youtube-mp3-downloader/"
-    ],
+    "asar": true,
     "appId": "com.djflame.djDestopClient",
     "files": [
       "assets/*",
@@ -55,6 +50,7 @@
       "music/*",
       "windows/*",
       "assets/**/*",
+      "Canary/**/*",
       "windows/**/*",
       "accountSettings.html",
       "ai.html",
@@ -71,6 +67,10 @@
       "sceneSettings.html",
       "signin.html"
     ],
+    "afterSign": "./build/afterSignHook.js",
+    "directories": {
+      "buildResources": "./build/resources"
+    },
     "publish": [
       {
         "provider": "github",
@@ -80,7 +80,12 @@
     ],
     "mac": {
       "category": "public.app-category.music",
-      "icon": "assets/appIcons/DJFlame Logo.icns"
+      "icon": "assets/appIcons/DJFlame Logo.icns",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "./build/resources/entitlements.mac.plist",
+      "entitlementsInherit": "./build/resources/entitlements.mac.plist",
+      "asarUnpack": "**/*.node"
     },
     "dmg": {
       "background": null,
@@ -102,6 +107,10 @@
           "path": "/Applications"
         }
       ]
+    },
+    "win": {
+      "icon": "assets/appIcons/DJFlame Logo.ico",
+      "target": "nsis"
     },
     "nsis": {
       "oneClick": false,
