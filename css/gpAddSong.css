@@ -67,6 +67,7 @@ input {
     padding: 8px;
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
+    -webkit-app-region: no-drag;
 }
 
 ul {
@@ -78,6 +79,7 @@ ul {
     overflow-y: scroll;
     border-bottom-left-radius: 10px;
     border-bottom-right-radius: 10px;
+    -webkit-app-region: no-drag;
 }
 
 .song:last-child {
@@ -94,6 +96,7 @@ ul {
     left: 32vw;
     display: none;
     transition: ease 100ms;
+    -webkit-app-region: no-drag;
 }
 
 .song:hover .fa-times-circle {
@@ -127,6 +130,7 @@ button {
     width: 20vw;
     border-width: 2.5px;
     margin-top: 10vh;
+    -webkit-app-region: no-drag;
 }
 
 ::-webkit-scrollbar {
@@ -164,6 +168,7 @@ button {
     left: 8px;
     margin-top: 0;
     transition: 800ms;
+    -webkit-app-region: no-drag;
 }
 
 .close p {
