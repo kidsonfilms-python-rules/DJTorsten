@@ -26,11 +26,12 @@ var q = []
 var partyID = '053467'
 
 class Song {
-  constructor(url, probarDiv, docName, info) {
+  constructor(url, probarDiv, docName, info, explicit) {
     this.url = url
     this.progressDiv = probarDiv
     this.docName = docName
     this.info = info
+    this.explicit = explicit
   }
 }
 
@@ -61,7 +62,7 @@ async function tryFillData() {
         var docName = data.docName
         console.info(`Adding ${url} to Playing Queue...`)
         var probar = document.createElement("div")
-        const songObj = new Song(url, probar, docName, { title: "--" })
+        const songObj = new Song(url, probar, docName, { title: "--" }, data.explicit)
         q.push(songObj)
 
         var main = document.getElementById('gpcolumn')
@@ -125,7 +126,7 @@ async function tryFillData() {
         // })
         vidTitle = videoInfo.title
         console.log(videoInfo)
-        songname.innerText = vidTitle;
+        songname.innerText = vidTitle.replace('[DJFlame EXPLICIT]', '') + (songObj.explicit ? ' [DJFlame EXPLICIT]' : '');
         songObj.info = videoInfo
 
         document.getElementById('deleteSongElement').onclick = () => { ipcRenderer.send('gpDeleteSong', docName); song.remove() }
@@ -137,17 +138,17 @@ async function tryFillData() {
                     </div>
                       <div class="rightClickMenuSeperator"></div>
                       <div class="menuItem">
-                        <a onclick="">Report Song</a>
+                        <a onclick="MicroModal.show('modal-1');">Report Song</a>
                       </div>
                       <div class="menuItem">
-                        <a onclick="">Report User</a>
+                        <a onclick="MicroModal.show('modal-1');">Report User</a>
                       </div>
                       <div class="rightClickMenuSeperator"></div>
                       <div class="menuItem">
                         <a onclick="">Rate Song</a>
                       </div>
                       <div class="menuItem">
-                        <a onclick="">Favorite Song</a>
+                        <a onclick="ipcRenderer.send('canaryHeartSong', '${v}')">Favorite Song</a>
                       </div>
                       <div class="menuItem">
                         <a onclick="">Award Song</a>
@@ -268,7 +269,7 @@ ipcRenderer.on('gpAdd', async (e, data) => {
   var docName = data.docName
   console.info(`Adding ${url} to Playing Queue...`)
   var probar = document.createElement("div")
-  const songObj = new Song(url, probar, docName, { title: '--' })
+  const songObj = new Song(url, probar, docName, { title: '--' }, data.explicit)
   q.push(songObj)
 
   var main = document.getElementById('gpcolumn')
@@ -321,6 +322,9 @@ ipcRenderer.on('gpAdd', async (e, data) => {
     $(elem).appendTo("#gpcolumn");
   });
 
+  var vidRaw = `?${url.split('?')[1]}`
+  var v = new URLSearchParams(vidRaw).get('v');
+
   document.getElementById('deleteSongElement').onclick = () => { ipcRenderer.send('gpDeleteSong', docName); song.remove() }
   const instance = tippy(song, {
     // content: document.getElementById('songCardsRightClickMenuTemplate').innerHTML,
@@ -330,17 +334,17 @@ ipcRenderer.on('gpAdd', async (e, data) => {
                     </div>
                       <div class="rightClickMenuSeperator"></div>
                       <div class="menuItem">
-                        <a onclick="">Report Song</a>
+                        <a onclick="MicroModal.show('modal-1');">Report Song</a>
                       </div>
                       <div class="menuItem">
-                        <a onclick="">Report User</a>
+                        <a onclick="MicroModal.show('modal-1');">Report User</a>
                       </div>
                       <div class="rightClickMenuSeperator"></div>
                       <div class="menuItem">
                         <a onclick="">Rate Song</a>
                       </div>
                       <div class="menuItem">
-                        <a onclick="">Favorite Song</a>
+                        <a onclick="ipcRenderer.send('canaryHeartSong', '${v}')">Favorite Song</a>
                       </div>
                       <div class="menuItem">
                         <a onclick="">Award Song</a>
@@ -372,8 +376,7 @@ ipcRenderer.on('gpAdd', async (e, data) => {
     instance.show();
   });
 
-  var vidRaw = `?${url.split('?')[1]}`
-  var v = new URLSearchParams(vidRaw).get('v');
+
 
   var videoInfo = await yts({ videoId: v })
   // yt.retrieve(v, function (err, videoInfo) {
@@ -382,7 +385,7 @@ ipcRenderer.on('gpAdd', async (e, data) => {
   //     console.log(videoInfo)
   //     songname.innerText = vidTitle;
   // })
-  vidTitle = videoInfo.title
+  vidTitle = videoInfo.title.replace('[DJFlame EXPLICIT]', '') + (data.explicit ? '  [DJFlame EXPLICIT]' : '')
   console.log(videoInfo)
   songname.innerText = vidTitle;
   songObj.info = videoInfo
@@ -602,7 +605,7 @@ ipcRenderer.on('canaryTimeChange', (e, d) => {
   const vidThumbnail = document.getElementById('audioControllerThumbnail')
 
   vidTitle.innerText = vidInfo.title
-  vidSubHeading.innerText = `${vidInfo.author.name} • DJ`
+  vidSubHeading.innerText = `${q[d.index].explicit ? '🅴   ' : ''}${vidInfo.author.name} • DJ`
   vidThumbnail.src = vidInfo.thumbnail
 
   if (d.fav) {
@@ -650,5 +653,49 @@ ipcRenderer.on('canaryNewSong', () => {
   audioPlayerContainer.style.display = 'block';
   audioPlayerContainer.style.visibility = 'visible';
 })
+
+Mousetrap.bind(['space'], function (e) {
+  e.preventDefault()
+  if (playState === 'play') {
+    playIconContainer.classList.toggle('fa-play')
+    playIconContainer.classList.toggle('fa-pause')
+    ipcRenderer.send('canaryPlay')
+    playState = 'pause';
+  } else {
+    playIconContainer.classList.toggle('fa-play')
+    playIconContainer.classList.toggle('fa-pause')
+    ipcRenderer.send('canaryPause')
+    playState = 'play';
+  }
+});
+Mousetrap.bind(['m'], function () {
+  if (muteState === 'mute') {
+    muteIconContainer.classList.toggle('fa-volume')
+    muteIconContainer.classList.toggle('fa-volume-mute')
+    ipcRenderer.send('canaryMute', 0)
+    muteState = 'unmute';
+  } else {
+    muteIconContainer.classList.toggle('fa-volume')
+    muteIconContainer.classList.toggle('fa-volume-mute')
+    ipcRenderer.send('canaryMute', 1)
+    muteState = 'mute';
+  }
+});
+Mousetrap.bind(['f'], function () {
+  if (heartIconContainer.classList.contains('heartActive')) {
+    heartIconContainer.classList.remove('heartActive');
+    heartIconContainer.classList.remove('fas')
+    heartIconContainer.classList.add('far')
+    ipcRenderer.send('canaryHeartSong', currentSong.videoId)
+  } else {
+    heartIconContainer.classList.add('heartActive')
+    heartIconContainer.classList.remove('far')
+    heartIconContainer.classList.add('fas')
+    ipcRenderer.send('canaryHeartSong', currentSong.videoId)
+  }
+});
+Mousetrap.bind(['command+shift+s', 'ctrl+shift+s'], function () {
+  ipcRenderer.send('canarySkip')
+});
 
 

@@ -179,7 +179,6 @@
         <li>
           <input type="radio" id="setTime-option" name="selector" checked>
           <label for="setTime-option">Set Time</label>
-
           <div class="check">
             <div class="inside"></div>
           </div>
@@ -190,6 +189,27 @@
         <h5 id="toText">to</h5>
         <input type="number" name="set2" id="number-2">
       </div>
+      <hr class="solid">
+      <div class="labelRow">
+        <label>After-Queue</label>
+      </div>
+      <p>What happens after there are no more songs left in queue?</p>
+      <label class="select" for="slct">
+        <select id="slct" required="required">
+          <option value="" selected="selected">Wait for New Request</option>
+          <option value="#">Play Random Previous Song</option>
+          <option value="#">AI Choose Previous Song</option>
+        </select>
+        <svg>
+          <use xlink:href="#select-arrow-down"></use>
+        </svg>
+      </label>
+      <!-- SVG Sprites-->
+      <svg class="sprites">
+        <symbol id="select-arrow-down" viewbox="0 0 10 6">
+          <polyline points="1 1 5 5 9 1"></polyline>
+        </symbol>
+      </svg>
       <hr class="solid">
     </div>
 
@@ -211,7 +231,7 @@
           <i class="fa fa-share icon" aria-hidden="true"></i>
           <span>SHARE THIS PARTY</span>
         </p>
-        <p class="share-modal__post-title">Party Code: <b>053467</b></p>
+        <p class="share-modal__post-title">Party Code: <b id="partyCodeText">053467</b></p>
 
         <div class="share-buttons-container">
           <a class="twitter" onclick="shareTwitter()"><i class="fab fa-twitter icon" aria-hidden="true"></i></a>

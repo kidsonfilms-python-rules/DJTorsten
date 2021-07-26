@@ -4,13 +4,14 @@ const rpc = require("discord-rpc");
 const rpcClient = new rpc.Client({ transport: 'ipc' });
 
 class Song {
-    constructor(url, probarDiv, docName, title, author, requester) {
+    constructor(url, probarDiv, docName, title, author, requester, explicit) {
         this.url = url
         this.progressDiv = probarDiv
         this.docName = docName
         this.title = title
         this.author = author
         this.requester = requester
+        this.explicit = explicit
     }
 }
 
