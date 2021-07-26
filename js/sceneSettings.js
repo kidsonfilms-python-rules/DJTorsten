@@ -419,7 +419,8 @@ document.getElementById("clickToCopyShareURL").onclick = function () {
 
 ipcRenderer.send('requestPartyCode')
 ipcRenderer.on('requestedPartyCode', (err, code) => {
-    document.getElementById("clickToCopyShareURL").value = `https://djflame.kidsonfilms.com/join?c=${code}`
+    document.getElementById('partyCodeText').value = code
+    document.getElementById("clickToCopyShareURL").value = `https://djflame.tech/join?c=${code}`
 })
 document.getElementById("clickToCopyShareURL").addEventListener('select', function () {
     this.selectionStart = this.selectionEnd;

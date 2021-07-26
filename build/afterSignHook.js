@@ -2,7 +2,8 @@ const fs = require('fs');
 const path = require('path');
 var electron_notarize = require('electron-notarize');
 const config = require('../package.json')
-require('dotenv').config();
+const Console = require('Console')
+const chalk = require('chalk')
 module.exports = async function (params) {
   // Only notarize the app on Mac OS only.  
   if (process.platform !== 'darwin' || path.join(params.appOutDir, `${params.packager.appInfo.productFilename}.app`) == '/Users/siddharth/dev/DJTorsten/dist/win-unpacked/DJFlame.app') {
@@ -15,7 +16,7 @@ module.exports = async function (params) {
     throw new Error(`Cannot find application at: ${appPath}`);
   }
   const startNoteTime = new Date()
-  console.log(`Notarizing ${appId} found at ${appPath}. Started Notarizing at ${new Date().toLocaleTimeString()}, expected max finish time ${new Date(new Date().getTime() + 350*1000).toLocaleTimeString()}`);
+  Console.log(chalk.bold(`Notarizing ${appId} found at ${appPath}. Started Notarizing at ${new Date().toLocaleTimeString()}, expected max finish time ${new Date(new Date().getTime() + 350*1000).toLocaleTimeString()}`));
   try {
     await electron_notarize.notarize({
       appBundleId: appId,
@@ -28,8 +29,8 @@ module.exports = async function (params) {
       // profiles linked to your apple ID.   
     });
   } catch (error) {
-    console.error(error);
+    Console.error(error);
     throw error;
   }
-  console.log(`Done notarizing ${appId}! Time Finished: ${new Date().toLocaleTimeString()}, Time Elasped: ${Math.floor(new Date() / 1000) - Math.floor(startNoteTime / 1000)}s`);
+  Console.success(chalk.bold(`Done notarizing ${appId}! Time Finished: ${new Date().toLocaleTimeString()}, Time Elasped: ${Math.floor(new Date() / 1000) - Math.floor(startNoteTime / 1000)}s`));
 };

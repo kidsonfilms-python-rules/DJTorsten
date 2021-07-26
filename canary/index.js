@@ -9,13 +9,14 @@ exports.default = class Canary {
 
         // DATA CLASSES
         class Song {
-            constructor(url, probarDiv, docName, title, author, requester) {
+            constructor(url, probarDiv, docName, title, author, requester, explicit) {
                 this.url = url
                 this.progressDiv = probarDiv
                 this.docName = docName
                 this.title = title
                 this.author = author
                 this.requester = requester
+                this.explicit = explicit
             }
         }
 

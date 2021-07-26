@@ -3,6 +3,7 @@ const electron = require('electron')
 const { app, BrowserWindow, ipcMain, desktopCapturer } = electron
 const path = require('path')
 const { default: Canary } = require('./Canary')
+const { default: isExplicit } = require('./Canary/explicitEngine.js')
 const http = require('http')
 const rpc = require("discord-rpc");
 var rpcClient = null;
@@ -11,11 +12,11 @@ var canary = null;
 
 let server;
 server = http.createServer((req, res) => {
-const filePath = path.join(app.getAppPath(), req.url);
-const file = fs.readFileSync(filePath);
-res.end(file.toString());
-if (req.url.includes('index.js'))
-   server.close();
+    const filePath = path.join(app.getAppPath(), req.url);
+    const file = fs.readFileSync(filePath);
+    res.end(file.toString());
+    if (req.url.includes('index.js'))
+        server.close();
 }).listen(8080);
 
 var canaryWindow = null
@@ -84,17 +85,17 @@ app.whenReady().then(async () => {
         console.log('[CANARY] Loading Engine...')
         rpcClient = new rpc.Client({ transport: 'ipc' });
         canary = new Canary(canaryWindow.webContents, rpcClient, eventEmitter)
-        canaryWindow.webContents.session.webRequest.onHeadersReceived({ urls: [ "*://*/*" ] },
-        (d, c)=>{
-          if(d.responseHeaders['X-Frame-Options']){
-            delete d.responseHeaders['X-Frame-Options'];
-          } else if(d.responseHeaders['x-frame-options']) {
-            delete d.responseHeaders['x-frame-options'];
-          }
-    
-          c({cancel: false, responseHeaders: d.responseHeaders});
-        }
-      );
+        canaryWindow.webContents.session.webRequest.onHeadersReceived({ urls: ["*://*/*"] },
+            (d, c) => {
+                if (d.responseHeaders['X-Frame-Options']) {
+                    delete d.responseHeaders['X-Frame-Options'];
+                } else if (d.responseHeaders['x-frame-options']) {
+                    delete d.responseHeaders['x-frame-options'];
+                }
+
+                c({ cancel: false, responseHeaders: d.responseHeaders });
+            }
+        );
     })
 
     app.on('activate', function () {
@@ -257,30 +258,34 @@ ipcMain.on('attemptAutoSignIn', () => {
 })
 
 var checkedForUpdates = false
-autoUpdater.setFeedURL({
-    provider: "github",
-    owner: "kidsonfilms-python-rules",
-    repo: 'DJFlame-Releases'
-})
+// autoUpdater.setFeedURL({
+//     provider: "github",
+//     owner: "kidsonfilms-python-rules",
+//     repo: 'DJFlame-Releases'
+// })
 
+// ipcMain.on('checkForUpdates', () => {
+//     console.log('checking...')
+//     autoUpdater.checkForUpdates();
+// })
 ipcMain.on('checkForUpdates', () => {
     console.log('checking...')
-    autoUpdater.checkForUpdates();
+    mainWindow.webContents.send('noUpdateAvailable')
 })
 
 
-/*checking for updates*/
-autoUpdater.on("checking-for-update", () => {
-    console.log('Checking for an Update')
-    mainWindow.webContents.send('checkingForUpdates')
-});
+// /*checking for updates*/
+// autoUpdater.on("checking-for-update", () => {
+//     console.log('Checking for an Update')
+//     mainWindow.webContents.send('checkingForUpdates')
+// });
 
-/*No updates available*/
-autoUpdater.on("update-not-available", info => {
-    console.log('DJFlame up-to-date!')
-    checkedForUpdates = true
-    mainWindow.webContents.send('noUpdateAvailable')
-});
+// /*No updates available*/
+// autoUpdater.on("update-not-available", info => {
+//     console.log('DJFlame up-to-date!')
+//     checkedForUpdates = true
+    // mainWindow.webContents.send('noUpdateAvailable')
+// });
 
 /*New Update Available*/
 autoUpdater.on("update-available", info => {
@@ -330,7 +335,8 @@ function getSceneSettings() {
                             random: data.guestPicksSongLenRandom,
                             range1: data.guestPicksSongLenRange1,
                             range2: data.guestPicksSongLenRange2,
-                        }
+                        },
+                        gpPlayAfter: data.gpAfterSong
                     }
                 })
                 console.log(config.get('sceneSettings'))
@@ -451,7 +457,7 @@ if (!Array.isArray(config.get('heartSongs'))) {
 // ----------------------------
 
 class Song {
-    constructor(url, probarDiv, docName, title, author, thumbnail, requester) {
+    constructor(url, probarDiv, docName, title, author, thumbnail, requester, explicit) {
         this.url = url
         this.progressDiv = probarDiv
         this.docName = docName
@@ -459,6 +465,7 @@ class Song {
         this.author = author
         this.thumbnail = thumbnail
         this.requester = requester
+        this.explicit = explicit
     }
 }
 
@@ -493,16 +500,20 @@ async function gpAdd(url, docName) {
     var vidRaw = `?${url.split('?')[1]}`
     var v = new URLSearchParams(vidRaw).get('v');
     var videoInfo = await yts({ videoId: v })
-    q.push(new Song(url, '', docName, videoInfo.title, videoInfo.author.name, 'DJ'))
-    q.sort(function (a, b) {
-        return parseInt(a.docName) - parseInt(b.docName);
-    })
-    canary.add(new Song(url, '', docName, videoInfo.title, videoInfo.author.name, videoInfo.thumbnail, 'DJ'))
+    // q.push(new Song(url, '', docName, videoInfo.title, videoInfo.author.name, 'DJ'))
+    // q.sort(function (a, b) {
+    //     return parseInt(a.docName) - parseInt(b.docName);
+    // })
+    const isEx = await isExplicit(new Song(url, '', docName, videoInfo.title, videoInfo.author.name, videoInfo.thumbnail, 'DJ', false))
+    canary.add(new Song(url, '', docName, videoInfo.title, videoInfo.author.name, videoInfo.thumbnail, 'DJ', isEx))
     canary.queue.sort(function (a, b) {
         return parseInt(a.docName) - parseInt(b.docName);
     })
-    console.log(q)
-    mainWindow.webContents.send('gpAdd', { url, docName })
+    // console.log(canary.queue)
+    if (isEx) {
+        console.log('New Song ' + videoInfo.title + ' Explicit!')
+    }
+    mainWindow.webContents.send('gpAdd', { url, docName, explicit: isEx })
 }
 
 ipcMain.on('gpAdd', (event, data) => {
@@ -632,73 +643,77 @@ async function gpPlay(time, index, currentI) {
 
 async function canaryPlay(song, songLen, index) {
     return new Promise(async (resolve, reject) => {
-    canary.play(song, songLen, index).then(() => {
-        resolve()
-    })
-    mainWindow.webContents.send('canaryNewSong')
+        db.collection('parties').doc(partyID).set({
+            gpNowPlaying: index
+        }, { merge: true })
+        canary.play(song, songLen, index).then(() => {
+            resolve()
+        })
+        mainWindow.webContents.send('canaryNewSong')
 
-    if (win) {
-        // var result = downloadedq.filter(obj => {
-        //     return obj.i === index
-        // })
-        // console.log(result)
-        const q = canary.queue
-        if (q.length - (index + 1) < 4) {
-            var queueList = []
-            for (var i = index + 1; (q.length - i) > 0; i++) {
-                queueList.push({
-                    title: q[i].title,
-                    author: q[i].author,
-                    requester: q[i].requester
-                })
+        if (win) {
+            // var result = downloadedq.filter(obj => {
+            //     return obj.i === index
+            // })
+            // console.log(result)
+            const q = canary.queue
+            if (q.length - (index + 1) < 4) {
+                var queueList = []
+                for (var i = index + 1; (q.length - i) > 0; i++) {
+                    queueList.push({
+                        title: q[i].title,
+                        author: q[i].author,
+                        requester: q[i].requester
+                    })
+                    console.log(queueList)
+                }
                 console.log(queueList)
+                data = {
+                    nowPlaying: {
+                        title: q[index].title,
+                        author: q[index].author,
+                        thumbnail: q[index].thumbnail.split('?')[0],
+                        requester: q[index].requester,
+                        likes: "0"
+                    },
+                    queue: queueList
+                }
+            } else {
+                data = {
+                    nowPlaying: {
+                        title: q[index].title,
+                        author: q[index].author,
+                        thumbnail: q[index].thumbnail.split('?')[0],
+                        requester: q[index].requester,
+                        likes: "0"
+                    },
+                    queue: [
+                        {
+                            title: q[index + 1].title,
+                            author: q[index + 1].author,
+                            requester: q[index + 1].requester
+                        },
+                        {
+                            title: q[index + 2].title,
+                            author: q[index + 2].author,
+                            requester: q[index + 2].requester
+                        },
+                        {
+                            title: q[index + 3].title,
+                            author: q[index + 3].author,
+                            requester: q[index + 3].requester
+                        },
+                        {
+                            title: q[index + 4].title,
+                            author: q[index + 4].author,
+                            requester: q[index + 4].requester
+                        },
+                    ]
+                }
             }
-            console.log(queueList)
-            data = {
-                nowPlaying: {
-                    title: q[index].title,
-                    author: q[index].author,
-                    thumbnail: q[index].thumbnail.split('?')[0],
-                    requester: q[index].requester,
-                    likes: "0"
-                },
-                queue: queueList
-            }
-        } else {
-            data = {
-                nowPlaying: {
-                    title: q[index].title,
-                    author: q[index].author,
-                    thumbnail: q[index].thumbnail.split('?')[0],
-                    requester: q[index].requester,
-                    likes: "0"
-                },
-                queue: [
-                    {
-                        title: q[index + 1].title,
-                        author: q[index + 1].author,
-                        requester: q[index + 1].requester
-                    },
-                    {
-                        title: q[index + 2].title,
-                        author: q[index + 2].author,
-                        requester: q[index + 2].requester
-                    },
-                    {
-                        title: q[index + 3].title,
-                        author: q[index + 3].author,
-                        requester: q[index + 3].requester
-                    },
-                    {
-                        title: q[index + 4].title,
-                        author: q[index + 4].author,
-                        requester: q[index + 4].requester
-                    },
-                ]
-            }
+            win.webContents.send('newExternalDisplayData', data)
         }
-        win.webContents.send('newExternalDisplayData', data)
-    }})
+    })
 }
 
 async function gpDownload(link, index) {
@@ -756,6 +771,7 @@ async function gpStart() {
     var index = 0;
     launchExternalDisplay()
     // for (index = 0; index < q.length; index++) {
+    var gpPlayAfter = config.get('sceneSettings').guestPicks.gpPlayAfter
     while (true) {
         if (status != 'STARTED') {
             console.info('Stopped Status, Stopping Function.')
@@ -767,7 +783,14 @@ async function gpStart() {
                 index = index + 1
             })
         } else {
-            await sleep(1000);
+            if (gpPlayAfter == 0) {
+                await sleep(1000)
+            } else if (gpPlayAfter == 1) {
+                console.log('Picking Random Song!')
+                await gpMain(Math.floor(Math.random() * canary.queue.length), downloadingStatus).then(() => {
+                    console.log('Song Done!')
+                })
+            }
         }
     }
 }
@@ -893,7 +916,7 @@ function launchExternalDisplay() {
                 devTools: false
             }
         })
-        // win.setKiosk(true);
+        win.setKiosk(true);
         win.loadFile(`${__dirname}/windows/externalDisplaysGP/externalDisplayGP${dchoice}.html`)
         win.show()
         ipcMain.on('stop', () => {
@@ -979,10 +1002,10 @@ ipcMain.on('gpUse', () => {
 })
 
 ipcMain.on('requestCurrentRunningData', () => {
-    if (q.length != 0) {
+    if (canary.queue.length != 0) {
         mainWindow.webContents.send('callbackCurrentRunningData', {
             runningScene: 'GP',
-            queue: q
+            queue: canary.queue
         })
     }
 })
@@ -991,8 +1014,7 @@ ipcMain.on('clearQueue', () => q = [])
 
 function gpDeleteSong(docName) {
     db.collection('parties').doc(partyID).collection('guestPicks').doc(docName).delete().then(() => {
-        q.splice(docName, 1)
-        song.remove()
+        canary.queue.splice(docName, 1)
     })
 }
 
