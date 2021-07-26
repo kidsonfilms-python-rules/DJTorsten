@@ -36,13 +36,19 @@ function createWindow() {
         },
         icon: `${__dirname}/assets/DJFlame Logo.svg`
     })
-    mainWindow.removeMenu()
+    // mainWindow.removeMenu()
     if (process.platform != 'darwin') {
         mainWindow.maximize()
     }
     // and load the index.html of the app.
     mainWindow.loadFile('loading.html').then(() => {
         mainWindow.show()
+    })
+
+    mainWindow.on('close', () => {
+        if (process.platform !== 'darwin') {
+            app.quit()
+        }
     })
 
     // Open the DevTools.

@@ -5,51 +5,57 @@ const onChange = require('on-change');
 var fs = require('fs');
 const path = require('path');
 
-const outPath = (process.platform == 'win32' || process.platform == 'linux') ? `${app.getPath('appData')}/.djflame/music/` : `${__dirname}/music/`
-var files = fs.readdirSync(outPath);
-console.log(files)
+ipcRenderer.invoke('getAppDataPath', 'fileName.txt').then((result) => {
+    const outPath = (process.platform == 'win32' || process.platform == 'linux') ? `${result}/.djflame/music/` : `${__dirname}/music/`
+    var files = fs.readdirSync(outPath);
+    console.log(files)
+
+    const clearCacheButton = document.getElementById('clearMusicCacheGPButton')
+    console.log(files)
+    if (files.length == 0) {
+        clearCacheButton.disabled = true;
+        tippy('#clearCacheProxy', {
+            duration: 0,
+            arrow: true,
+            content: 'Cache is Clear!',
+            offset: [0, -265],
+            inertia: true,
+            animation: 'perspective',
+        });
+    }
+
+    var directory = 'music'
+
+    clearCacheButton.addEventListener('click', () => {
+        for (const file of files) {
+            fs.unlink(path.join(directory, file), err => {
+                if (err) throw err;
+                clearCacheButton.disabled = true;
+                tippy('#clearCacheProxy', {
+                    duration: 0,
+                    arrow: true,
+                    content: 'Cache is Clear!',
+                    offset: [0, -1000],
+                    inertia: true,
+                    animation: 'perspective',
+                });
+            });
+        }
+    })
+});
+
 // const fi = files.indexOf('Rick Astley - Never Gonna Give You Up (Video).mp3');
 // if (fi > -1) {
 //   files.splice(fi, 1);
 // }
-const clearCacheButton = document.getElementById('clearMusicCacheGPButton')
-console.log(files)
-if (files.length == 0) {
-    clearCacheButton.disabled = true;
-    tippy('#clearCacheProxy', {
-        duration: 0,
-        arrow: true,
-        content: 'Cache is Clear!',
-        offset: [0,-265],
-        inertia: true,
-        animation:'perspective',
-      });
-}
 
-var directory = 'music'
 
-clearCacheButton.addEventListener('click', () => {
-    for (const file of files) {
-        fs.unlink(path.join(directory, file), err => {
-          if (err) throw err;
-          clearCacheButton.disabled = true;
-    tippy('#clearCacheProxy', {
-        duration: 0,
-        arrow: true,
-        content: 'Cache is Clear!',
-        offset: [0,-1000],
-        inertia: true,
-        animation:'perspective',
-      });
-        });
-      }
-})
 
 var savedData;
 var currentData;
 
 ipcRenderer.send('requestSceneSettings', '')
-ipcRenderer.on('requestedSceneSettings' , (e, sceneSettings) => {
+ipcRenderer.on('requestedSceneSettings', (e, sceneSettings) => {
     console.log(sceneSettings)
     savedData = JSON.parse(JSON.stringify(sceneSettings));
     currentData = JSON.parse(JSON.stringify(sceneSettings));
@@ -57,38 +63,38 @@ ipcRenderer.on('requestedSceneSettings' , (e, sceneSettings) => {
     var unsavedModal = document.getElementById('unsavedModal')
 
 
-var guestPicksToggle = document.getElementById('guestPicks')
-var karaokeToggle = document.getElementById('karaoke')
-var externalDisplayToggle = document.getElementById('externalDisplayToggle')
-var setTimeRadio = document.getElementById('setTime-option')
-var randomTimeRadio = document.getElementById('randomTime-option')
-var toText = document.getElementById('toText')
-var range2 = document.getElementById('number-2')
-var range1 = document.getElementById('number-1')
+    var guestPicksToggle = document.getElementById('guestPicks')
+    var karaokeToggle = document.getElementById('karaoke')
+    var externalDisplayToggle = document.getElementById('externalDisplayToggle')
+    var setTimeRadio = document.getElementById('setTime-option')
+    var randomTimeRadio = document.getElementById('randomTime-option')
+    var toText = document.getElementById('toText')
+    var range2 = document.getElementById('number-2')
+    var range1 = document.getElementById('number-1')
 
-if (savedData.general.guestPicks) {
-    guestPicksToggle.checked = true
-}
-if (savedData.general.karaoke) {
-    karaokeToggle.checked = true
-}
-if (savedData.guestPicks.externalDisplay) {
-    externalDisplayToggle.checked = true
-    externalDisplayButton.style.display = 'block'
-}
-if (savedData.guestPicks.songLength.random) {
-    randomTimeRadio.checked = true
-    toText.style.display = 'inline-block'
-    range2.style.display = 'inline-block'
-    range1.value = savedData.guestPicks.songLength.range1
-    range2.value = savedData.guestPicks.songLength.range2
-} else if (!savedData.guestPicks.songLength.random) {
-    setTimeRadio.checked = true
-    toText.style.display = 'none'
-    range2.style.display = 'none'
-    range1.value = savedData.guestPicks.songLength.range1
-    range2.value = savedData.guestPicks.songLength.range2
-}
+    if (savedData.general.guestPicks) {
+        guestPicksToggle.checked = true
+    }
+    if (savedData.general.karaoke) {
+        karaokeToggle.checked = true
+    }
+    if (savedData.guestPicks.externalDisplay) {
+        externalDisplayToggle.checked = true
+        externalDisplayButton.style.display = 'block'
+    }
+    if (savedData.guestPicks.songLength.random) {
+        randomTimeRadio.checked = true
+        toText.style.display = 'inline-block'
+        range2.style.display = 'inline-block'
+        range1.value = savedData.guestPicks.songLength.range1
+        range2.value = savedData.guestPicks.songLength.range2
+    } else if (!savedData.guestPicks.songLength.random) {
+        setTimeRadio.checked = true
+        toText.style.display = 'none'
+        range2.style.display = 'none'
+        range1.value = savedData.guestPicks.songLength.range1
+        range2.value = savedData.guestPicks.songLength.range2
+    }
 })
 
 
@@ -262,7 +268,7 @@ externalDisplayButton.addEventListener('click', (e) => {
             nodeIntegration: true,
             enableRemoteModule: true,
             contextIsolation: false,
-            devTools: false
+            devTools: true
         },
         alwaysOnTop: true,
         show: false,
@@ -415,15 +421,15 @@ ipcRenderer.send('requestPartyCode')
 ipcRenderer.on('requestedPartyCode', (err, code) => {
     document.getElementById("clickToCopyShareURL").value = `https://djflame.kidsonfilms.com/join?c=${code}`
 })
-document.getElementById("clickToCopyShareURL").addEventListener('select', function() {
+document.getElementById("clickToCopyShareURL").addEventListener('select', function () {
     this.selectionStart = this.selectionEnd;
-  }, false);
+}, false);
 
-$('#share-modal').on('click', function(e) {
+$('#share-modal').on('click', function (e) {
     if (e.target !== e.currentTarget)
-      return;
-    
-      modal.classList.toggle('share-modal--open');
-      console.log(modal)
-      modal.classList.toggle('share-modal--close');
-  });
+        return;
+
+    modal.classList.toggle('share-modal--open');
+    console.log(modal)
+    modal.classList.toggle('share-modal--close');
+});
