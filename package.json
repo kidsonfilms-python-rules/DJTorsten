@@ -25,7 +25,7 @@
     "electron-notarize": "^1.0.0",
     "filesize": "^7.0.0",
     "minify": "^7.0.2",
-    "uglify-js": "^3.13.10"
+    "uglify-js": "^3.14.1"
   },
   "testEnvironment": "node",
   "dependencies": {
