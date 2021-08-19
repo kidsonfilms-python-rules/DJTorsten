@@ -114,20 +114,31 @@ async function tryFillData() {
           $(elem).appendTo("#gpcolumn");
         });
 
-        var vidRaw = `?${url.split('?')[1]}`
-        var v = new URLSearchParams(vidRaw).get('v');
+        var v = url
 
-        var videoInfo = await yts({ videoId: v })
-        // yt.retrieve(v, function (err, videoInfo) {
-        //     if (err) throw err
-        //     vidTitle = videoInfo.title
-        //     console.log(videoInfo)
-        //     songname.innerText = vidTitle;
-        // })
-        vidTitle = videoInfo.title
-        console.log(videoInfo)
-        songname.innerText = vidTitle.replace('[DJFlame EXPLICIT]', '') + (songObj.explicit ? ' [DJFlame EXPLICIT]' : '');
-        songObj.info = videoInfo
+        if (url.toLowerCase().includes('youtube.com')) {
+          var vidRaw = `?${url.split('?')[1]}`
+          v = new URLSearchParams(vidRaw).get('v');
+
+          var videoInfo = await yts({ videoId: v })
+          // yt.retrieve(v, function (err, videoInfo) {
+          //     if (err) throw err
+          //     vidTitle = videoInfo.title
+          //     console.log(videoInfo)
+          //     songname.innerText = vidTitle;
+          // })
+          vidTitle = videoInfo.title
+          console.log(videoInfo)
+          songname.innerText = vidTitle.replace('[DJFlame EXPLICIT]', '') + (songObj.explicit ? ' [DJFlame EXPLICIT]' : '');
+          songObj.info = videoInfo
+        } else {
+          songname.innerText = data.title
+          songObj.info = {
+            title: data.title,
+            author: data.author,
+            thumbnail: "https://player.listenlive.co/templates/StandardPlayerV4/webroot/img/default-cover-art.png"
+          }
+        }
 
         document.getElementById('deleteSongElement').onclick = () => { ipcRenderer.send('gpDeleteSong', docName); song.remove() }
         const instance = tippy(song, {
@@ -225,7 +236,7 @@ gpAddSongButton.onclick = () => {
       nodeIntegration: true,
       enableRemoteModule: true,
       contextIsolation: false,
-      devTools: false
+      // devTools: false
     },
     alwaysOnTop: true,
     show: false,
@@ -322,8 +333,7 @@ ipcRenderer.on('gpAdd', async (e, data) => {
     $(elem).appendTo("#gpcolumn");
   });
 
-  var vidRaw = `?${url.split('?')[1]}`
-  var v = new URLSearchParams(vidRaw).get('v');
+  var v = url
 
   document.getElementById('deleteSongElement').onclick = () => { ipcRenderer.send('gpDeleteSong', docName); song.remove() }
   const instance = tippy(song, {
@@ -377,18 +387,30 @@ ipcRenderer.on('gpAdd', async (e, data) => {
   });
 
 
-
-  var videoInfo = await yts({ videoId: v })
-  // yt.retrieve(v, function (err, videoInfo) {
-  //     if (err) throw err
-  //     vidTitle = videoInfo.title
-  //     console.log(videoInfo)
-  //     songname.innerText = vidTitle;
-  // })
-  vidTitle = videoInfo.title.replace('[DJFlame EXPLICIT]', '') + (data.explicit ? '  [DJFlame EXPLICIT]' : '')
-  console.log(videoInfo)
-  songname.innerText = vidTitle;
-  songObj.info = videoInfo
+  if (url.toLowerCase().includes('youtube.com')) {
+    var vidRaw = `?${url.split('?')[1]}`
+    var v = new URLSearchParams(vidRaw).get('v');
+    var videoInfo = await yts({ videoId: v })
+    // yt.retrieve(v, function (err, videoInfo) {
+    //     if (err) throw err
+    //     vidTitle = videoInfo.title
+    //     console.log(videoInfo)
+    //     songname.innerText = vidTitle;
+    // })
+    vidTitle = videoInfo.title.replace('[DJFlame EXPLICIT]', '') + (data.explicit ? '  [DJFlame EXPLICIT]' : '')
+    console.log(videoInfo)
+    songname.innerText = vidTitle;
+    songObj.info = videoInfo
+  } else {
+    songname.innerText = data.title
+    songObj.info = {
+      title: data.title,
+      author: {
+        name: data.author
+      },
+      thumbnail: "https://player.listenlive.co/templates/StandardPlayerV4/webroot/img/default-cover-art.png"
+    }
+  }
 })
 
 var gpuseval = 0
@@ -598,6 +620,7 @@ ipcRenderer.on('canaryTimeChange', (e, d) => {
   audioTime.innerText = `${secondsToHms(Math.trunc(d.seconds))} / ${secondsToHms(d.duration)}`
   showRangeProgress(seekSlider)
   var vidInfo = q[d.index].info
+  if (!vidInfo.videoId) vidInfo.videoId = q[d.index].url
   currentSong = vidInfo
 
   const vidTitle = document.getElementById('audioControllerTitle')

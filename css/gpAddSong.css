@@ -5,7 +5,7 @@ body:not(.fa-times-circle) {
 }
 
 body {
-    overflow-y: hidden;
+    /* overflow-y: hidden; */
     -webkit-touch-callout: none;
     /* iOS Safari */
     -webkit-user-select: none;
@@ -131,6 +131,7 @@ button {
     border-width: 2.5px;
     margin-top: 10vh;
     -webkit-app-region: no-drag;
+    cursor: pointer;
 }
 
 ::-webkit-scrollbar {
@@ -169,6 +170,7 @@ button {
     margin-top: 0;
     transition: 800ms;
     -webkit-app-region: no-drag;
+    transition: all ease 5s;
 }
 
 .close p {

@@ -33,6 +33,7 @@
     "electron-store": "^8.0.0",
     "electron-updater": "^4.3.9",
     "firebase": "^8.6.8",
+    "get-audio-duration": "^3.0.0",
     "jquery": "^3.6.0",
     "on-change": "^3.0.2",
     "play-sound": "^1.1.3",

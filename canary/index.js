@@ -1,11 +1,17 @@
 const { ipcMain } = require('electron')
+const Soundplayer = require('play-sound')(opts = {})
+const { getAudioDurationInSeconds } = require('get-audio-duration');
+const Config = require('electron-store');
+
 
 exports.default = class Canary {
-    constructor(ipc, discordRPC, eventEmitter) {
+    constructor(ipc, discordRPC, eventEmitter, mainWindow) {
         this.ipc = ipc
         this.discordRPC = discordRPC
         this.queue = []
         this.eventEmitter = eventEmitter
+        this.mainWindow = mainWindow
+        this.config = new Config()
 
         // DATA CLASSES
         class Song {
@@ -69,7 +75,7 @@ exports.default = class Canary {
         return new Promise((resolve, reject) => {
             console.log(`[CANARY] Playing Song... SONG: ${song.url}`)
             // console.log({ id: this.getId(song.url), time: songLen*1000 })
-            this.ipc.send('canaryPlay', { id: this.getId(song.url), time: songLen*1000, index: index })
+            this.ipc.send('canaryPlay', { id: this.getId(song.url), time: songLen * 1000, index: index })
 
 
             this.discordRPC.request('SET_ACTIVITY', {
@@ -99,12 +105,77 @@ exports.default = class Canary {
                 this.ipc.send('canaryStop')
             })
 
-            var stopListener = () => { 
+            var stopListener = () => {
                 console.log('[CANARY] Song Stopped...')
                 resolve()
                 ipcMain.removeListener('canaryStopped', stopListener)
             }
             ipcMain.on('canaryStopped', stopListener)
+
+        })
+    }
+
+    playLocal(song, songLen, index) {
+        return new Promise(async (resolve, reject) => {
+            console.log(`[CANARY] Playing Song... SONG: ${song.url}`)
+            // console.log({ id: this.getId(song.url), time: songLen*1000 })
+            // this.ipc.send('canaryPlay', { id: this.getId(song.url), time: songLen*1000, index: index })
+
+            var songInstance = Soundplayer.play(song.url, function (err) {
+                if (err) console.error(err);
+                console.log('[CANARY] Song Stopped...')
+                clearInterval(playTimeInterval)
+                resolve()
+            });
+
+            var startDate = new Date()
+
+            this.discordRPC.request('SET_ACTIVITY', {
+                pid: process.pid,
+                activity: {
+                    details: `Playing ${song.title}`,
+                    state: `Song ${parseInt(index) + 1}/${this.queue.length}`,
+                    assets: {
+                        large_image: 'test',
+                        large_text: 'Guest Picks',
+                        small_image: 'djflame_logo',
+                        small_text: 'DJFlame',
+                    },
+                    buttons: [
+                        {
+                            label: 'Join Party', url: 'https://djflame.tech'
+                        }
+                    ]
+                }
+            })
+
+            const mainWindow = this.mainWindow
+            var playTimeInterval = null
+            var videoDur = await getAudioDurationInSeconds(song.url)
+            const config = this.config
+            playTimeInterval = setInterval(function () {
+                // const percentage = ((songInstance.getCurrentTime() / videoDur) * 100)
+                var favSongs = config.get('heartSongs')
+                var isFav = false;
+                if (favSongs.includes(song.url)) isFav = true
+                mainWindow.send('canaryTimeChange', { percentage: (((new Date() - startDate)/1000)/videoDur)*100, seconds: (new Date() - startDate)/1000, duration: videoDur, index: index, fav: isFav })
+            }, 1000);
+
+            this.eventEmitter.on('stop', () => {
+                songInstance.kill()
+                clearInterval(playTimeInterval)
+                resolve()
+            })
+
+            this.eventEmitter.on('skip', () => {
+                songInstance.kill()
+                clearInterval(playTimeInterval)
+                resolve()
+            })
+
+            setTimeout(function () {
+                songInstance.kill()
+            }, songLen * 1000);
 
         })
     }
