@@ -134,7 +134,7 @@ const { autoUpdater } = require("electron-updater");
 //--------------------
 // Guest Picks Packages
 var Soundplayer = require('play-sound')(opts = {})
-const ytdl = require('youtube-mp3-downloader');
+// const ytdl = require('youtube-mp3-downloader');
 const fs = require('fs')
 const EventEmitter = require('events');
 const yts = require('yt-search')
@@ -823,40 +823,40 @@ async function canaryPlay(song, songLen, index) {
     })
 }
 
-async function gpDownload(link, index) {
-    if (downloadedq.map(a => a.url).includes(link)) {
-        var linkMap = await downloadedq.map(a => a.url)
-        var cachei = await arrayContains(link, linkMap)
-        eventEmitter.emit(`downloadFinished ${index}`, downloadedq[cachei].i);
-        return 'Already Downloaded'
-    }
-    console.info(`Downloading ${link}, index ${index}...`)
-    const probar = q[index].progressDiv
-    var vidRaw = `?${link.split('?')[1]}`
-    var v = new URLSearchParams(vidRaw).get('v');
-    const ffmpegPath = isDev() ? `${__dirname}/assets/ffmpeg/ffmpeg` : `${__dirname}/../app.asar.unpacked/assets/ffmpeg/ffmpeg`
-    const outPath = (process.platform == 'win32' || process.platform == 'linux') ? `${app.getPath('appData')}/.djflame/music/` : `${__dirname}/music/`
-    const DOWNLOADER = new ytdl({
-        "ffmpegPath": ffmpegPath, // || FFmpeg binary location
-        "outputPath": outPath, //  || Output file location (default: the home directory)
-        "youtubeVideoQuality": "highestaudio", //   || Desired video quality (default: highestaudio
-        "progressTimeout": 0, //    || Interval in ms for the progress reports (default: 1000)
-    });
-    DOWNLOADER.on("progress", function (progress) {
-        console.log(JSON.stringify(progress));
-        mainWindow.webContents.send('setProbarWidth', { link: link, width: progress.progress.percentage.toString().split('.')[0] })
-        // probar.style.width = `${progress.progress.percentage.toString().split('.')[0]}%`
-    });
-    DOWNLOADER.download(v, `${index}.mp3`)
-    DOWNLOADER.on("finished", function (err, data) {
-        DOWNLOADER.removeAllListeners("progress")
-        if (err) console.error(err)
-        mainWindow.webContents.send('setProbarWidth', { link: link, width: "0" })
-        console.info('Downloaded: \n', JSON.stringify(data));
-        downloadedq.push(new DownloadSong(link, index, data.title, data.thumbnail, data.artist))
-        eventEmitter.emit(`downloadFinished ${index}`, index);
-    });
-}
+// async function gpDownload(link, index) {
+//     if (downloadedq.map(a => a.url).includes(link)) {
+//         var linkMap = await downloadedq.map(a => a.url)
+//         var cachei = await arrayContains(link, linkMap)
+//         eventEmitter.emit(`downloadFinished ${index}`, downloadedq[cachei].i);
+//         return 'Already Downloaded'
+//     }
+//     console.info(`Downloading ${link}, index ${index}...`)
+//     const probar = q[index].progressDiv
+//     var vidRaw = `?${link.split('?')[1]}`
+//     var v = new URLSearchParams(vidRaw).get('v');
+//     const ffmpegPath = isDev() ? `${__dirname}/assets/ffmpeg/ffmpeg` : `${__dirname}/../app.asar.unpacked/assets/ffmpeg/ffmpeg`
+//     const outPath = (process.platform == 'win32' || process.platform == 'linux') ? `${app.getPath('appData')}/.djflame/music/` : `${__dirname}/music/`
+//     const DOWNLOADER = new ytdl({
+//         "ffmpegPath": ffmpegPath, // || FFmpeg binary location
+//         "outputPath": outPath, //  || Output file location (default: the home directory)
+//         "youtubeVideoQuality": "highestaudio", //   || Desired video quality (default: highestaudio
+//         "progressTimeout": 0, //    || Interval in ms for the progress reports (default: 1000)
+//     });
+//     DOWNLOADER.on("progress", function (progress) {
+//         console.log(JSON.stringify(progress));
+//         mainWindow.webContents.send('setProbarWidth', { link: link, width: progress.progress.percentage.toString().split('.')[0] })
+//         // probar.style.width = `${progress.progress.percentage.toString().split('.')[0]}%`
+//     });
+//     DOWNLOADER.download(v, `${index}.mp3`)
+//     DOWNLOADER.on("finished", function (err, data) {
+//         DOWNLOADER.removeAllListeners("progress")
+//         if (err) console.error(err)
+//         mainWindow.webContents.send('setProbarWidth', { link: link, width: "0" })
+//         console.info('Downloaded: \n', JSON.stringify(data));
+//         downloadedq.push(new DownloadSong(link, index, data.title, data.thumbnail, data.artist))
+//         eventEmitter.emit(`downloadFinished ${index}`, index);
+//     });
+// }
 
 async function gpStart() {
     if (status == 'STARTED') { console.error('Already Started'); return '' }

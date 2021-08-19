@@ -1,7 +1,6 @@
 const electron = require('electron')
 const ipcRenderer = electron.ipcRenderer;
 const BrowserWindow = electron.remote.BrowserWindow
-const onChange = require('on-change');
 var fs = require('fs');
 const path = require('path');
 
