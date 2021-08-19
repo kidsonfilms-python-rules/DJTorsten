@@ -6,6 +6,7 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
+    "test": "mocha",
     "pack": "electron-builder --dir",
     "dist": "electron-builder -mw",
     "dist-win": "electron-builder -w",
