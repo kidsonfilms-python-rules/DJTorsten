@@ -18,29 +18,11 @@ jobs:
         node-version: [16.x]
 
     steps:
-      - name: Fix git checkout line endings
-        run: git config --global core.autocrlf input
       - uses: actions/checkout@v2
-      - name: Setup Node.js
-        uses: actions/setup-node@v1
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v2.1.5
         with:
-          node-version: ${{ matrix.node-version }}
-      - name: Get npm cache directory
-        id: npm-cache
-        run: |
-          echo "::set-output name=dir::$(npm config get cache)"
-      - uses: actions/cache@v1
-        with:
-          path: ${{ steps.npm-cache.outputs.dir }}
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-      - name: Install xvfb
-        with:
-          run: sudo apt-get install xvfb
-      - name: Install Node Dependencies
-        with:
-          run: npm i
-      - name: Run Tests
-        with:
-          run: xvfb-run --auto-servernum npm test
+          node-version: 14.x
+      - run: npm install
+      - run: sudo apt-get install xvfb
+      - run: xvfb-run --auto-servernum npm test
