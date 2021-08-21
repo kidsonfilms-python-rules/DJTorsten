@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        node-version: [16.x]
+        node-version: [14.x]
 
     steps:
       - uses: actions/checkout@v2
@@ -25,4 +25,7 @@ jobs:
           node-version: 14.x
       - run: npm install
       - run: sudo apt-get install xvfb
-      - run: xvfb-run --auto-servernum npm test
+      - name: Run Tests
+        run: xvfb-run --auto-servernum npm test
+        env:
+          DISPLAY: ':99.0'
