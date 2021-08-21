@@ -16,7 +16,7 @@ jobs:
     strategy:
       max-parallel: 3
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-18.04]
+        os: [macos-latest, windows-latest]
         node-version: [14.x]
         #node-version: [8.x, 10.x]
 
