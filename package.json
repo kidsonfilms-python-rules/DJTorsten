@@ -23,7 +23,7 @@
     "Console": "^1.1.0",
     "electron": "^13.2.1",
     "electron-builder": "^22.9.1",
-    "electron-notarize": "^1.1.0",
+    "electron-notarize": "^1.1.1",
     "filesize": "^7.0.0",
     "minify": "^7.0.2",
     "mocha": "^9.0.3",
