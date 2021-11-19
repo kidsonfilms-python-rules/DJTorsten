@@ -43,7 +43,7 @@
     "solenolyrics": "^5.0.0",
     "speaker": "^0.5.3",
     "web-audio-api": "^0.2.2",
-    "youtube-mp3-downloader": "^0.7.7",
+    "youtube-mp3-downloader": "^0.7.9",
     "yt-search": "^2.10.1"
   },
   "build": {
