@@ -204,6 +204,9 @@ var gpStartButton = document.getElementById("startGuestPicks");
 var gpUseButton = document.getElementById("useGuestPicks");
 var gpSkipButton = document.getElementById("skipGuestPicks");
 var gpAddSongButton = document.getElementById("addSongGuestPicks");
+var aidjStartButton = document.getElementById("startAIDJ");
+var aidjSkipButton = document.getElementById("skipAIDJ");
+var aidjAddSongButton = document.getElementById("addSongAIDJ");
 gpStartButton.onclick = (event) => {
   console.log(event);
   ipcRenderer.send('gpStart')
@@ -213,6 +216,9 @@ gpStartButton.onclick = (event) => {
 gpUseButton.onclick = () => {
   gpUse()
 }
+// karaUseButton.onclick = () => {
+//   karaUse()
+// }
 
 gpSkipButton.onclick = () => {
   console.log('SKIPPING...')
@@ -428,22 +434,27 @@ function gpUse() {
     document.getElementById('gpqueuediv').style = 'display: none;'
     q = []
     ipcRenderer.send('clearQueue')
+    ipcRenderer.send('stopGP')
     document.getElementById('useGuestPicks').value = 'USE'
     document.getElementById('gpcolumn').textContent = '';
     switchButton('start')
   }
 }
+function aidjUse() {
+  switchButton('start', 'AIDJ')
+  ipcRenderer.send('aidjStart')
+}
 
-function switchButton(switchto) {
+function switchButton(switchto, scene="GuestPicks") {
   if (switchto == 'stop') {
     gpStartButton.value = 'STOP'
     gpStartButton.style.backgroundColor = 'red'
-    document.getElementById('useGuestPicks').value = 'PAUSE'
+    document.getElementById('use' + scene).value = 'PAUSE'
     gpStartButton.onclick = function (event) {
       console.log(event);
       ipcRenderer.send('stop', 'random shit')
-      document.getElementById('startGuestPicks').style = 'display: none;'
-      document.getElementById('useGuestPicks').value = 'START'
+      document.getElementById('start' + scene).style = 'display: none;'
+      document.getElementById('use' + scene).value = 'START'
       document.getElementById('gpqueuediv').style = 'display: none;'
       audioPlayerContainer.style.display = 'none';
       audioPlayerContainer.style.visibility = 'none';
@@ -451,7 +462,7 @@ function switchButton(switchto) {
     }
   } else if (switchto == 'start') {
     gpStartButton.value = 'START'
-    document.getElementById('useGuestPicks').value = 'UNHAND'
+    document.getElementById('use' + scene).value = 'UNHAND'
     gpStartButton.style.backgroundColor = 'rgb(24, 24, 24)'
     gpStartButton.onclick = function (event) {
       console.log(event);

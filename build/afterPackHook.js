@@ -80,6 +80,14 @@ exports.default = async context => {
             compProSize += fs.statSync(file).size;
             Console.success(`Compressed ${path.basename(file)}!               Compressed Size ${chalk.bold(filesize(fs.statSync(file).size, { round: 0 }))} ${chalk.bold(chalk.red(`-${filesize((beforeFileStats.size - fs.statSync(file).size), { round: 0 })} -${Math.floor(((beforeFileStats.size - fs.statSync(file).size) / beforeFileStats.size) * 100)}%`))}`)
           // })
+        } else if (file.includes('.json')) {
+          const beforeFileStats = fs.statSync(file)
+          Console.log(`Compressing ${chalk.bold(path.basename(file))}...            Current Size ${chalk.bold(filesize(beforeFileStats.size, { round: 0 }))}`)
+          var jsonFileData = fs.readFileSync(file, 'utf-8')
+          const minifiedJsonFile = jsonFileData.replace(/\s+(?=([^"]*"[^"]*")*[^"]*$)/g,"")
+          fs.writeFileSync(file, minifiedJsonFile)
+          compProSize += fs.statSync(file).size;
+          Console.success(`Compressed ${path.basename(file)}!               Compressed Size ${chalk.bold(filesize(fs.statSync(file).size, { round: 0 }))} ${chalk.bold(chalk.red(`-${filesize((beforeFileStats.size - fs.statSync(file).size), { round: 0 })} -${Math.floor(((beforeFileStats.size - fs.statSync(file).size) / beforeFileStats.size) * 100)}%`))}`)
         } else {
           compProSize += fs.statSync(file).size;
         }
@@ -103,14 +111,14 @@ exports.default = async context => {
       var compProSize = await compressFiles(files)
       Console.success(`Finished Compressing!`)
       Console.log(chalk.bold(`Compressed Project Size (No Node Modules): ${chalk.greenBright(`${filesize(compProSize)} ${chalk.red(`-${filesize((uncompProSize - compProSize), { round: 0 })} -${Math.floor(((uncompProSize - compProSize) / uncompProSize) * 100)}%`)}`)}`))
-      exec('cd dist/mac/DJFlame.app/Contents/Resources/ && npx asar pack app app.asar && rm -rf app/',
-    function (error, stdout, stderr) {
-        console.log('stdout: ' + stdout);
-        console.log('stderr: ' + stderr);
-        if (error !== null) {
-             console.log('exec error: ' + error);
-        }
-    });
+    //   exec('cd dist/mac/DJFlame.app/Contents/Resources/ && npx asar pack app app.asar && rm -rf app/',
+    // function (error, stdout, stderr) {
+    //     console.log('stdout: ' + stdout);
+    //     console.log('stderr: ' + stderr);
+    //     if (error !== null) {
+    //          console.log('exec error: ' + error);
+    //     }
+    // });
     })
   }
 };

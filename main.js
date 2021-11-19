@@ -352,11 +352,11 @@ function initLogDir() {
             }
         }
         var partyConfigLogStr = JSON.stringify(partyConfigLog)
-        fs.writeFile(path.join(partyLogDir, 'party-config-log.json'), partyConfigLogStr, 'utf8', () => {});
+        fs.writeFile(path.join(partyLogDir, 'party-config-log.json'), partyConfigLogStr, 'utf8', () => { });
     }
 
     if (!fs.existsSync(path.join(partyLogDir, 'party-events.log'))) {
-        fs.writeFile(path.join(partyLogDir, 'party-events.log'), '[' + new Date().toISOString() + '] LOG START', () => {})
+        fs.writeFile(path.join(partyLogDir, 'party-events.log'), '[' + new Date().toISOString() + '] LOG START', () => { })
     }
     if (!fs.existsSync(path.join(partyLogDir, 'node-errors.log'))) {
         const error = fs.createWriteStream(partyLogDir + '/node.error.log', { flags: 'a' });
@@ -367,29 +367,29 @@ function initLogDir() {
     }
 
     app.setPath('crashDumps', path.join(partyLogDir, 'crash-dumps/'))
-    crashReporter.start({uploadToServer: false})
+    crashReporter.start({ uploadToServer: false })
 }
 
-function partylog(message, error=false, thread='MAIN') {
+function partylog(message, error = false, thread = 'MAIN') {
     const log = `${error ? '\n\n----------------------ERROR THROWN----------------------' : ''}\n[${new Date().toISOString()}] [${thread}]${(error ? ' [ERROR]' : '')} ${message}${error ? '\n----------------------ERROR END----------------------\n' : ''}`
-    fs.open(path.join(path.join(path.join(app.getPath('userData'), 'Party Logs/'), 'party-' + partyID.toString() + '-logs/'), 'party-events.log'), 'a', 666, function( e, id ) {
-   
-    fs.write( id, log, null, 'utf8', function(){
-    fs.close(id, function(){
+    fs.open(path.join(path.join(path.join(app.getPath('userData'), 'Party Logs/'), 'party-' + partyID.toString() + '-logs/'), 'party-events.log'), 'a', 666, function (e, id) {
+
+        fs.write(id, log, null, 'utf8', function () {
+            fs.close(id, function () {
+            });
+        });
     });
-   });
-  });
 }
 
 process.on('unhandledRejection', (reason, p) => {
     console.error(reason, 'Unhandled Rejection at Promise', p);
     partylog(reason + 'Unhandled Rejection at Promise' + p, true)
-  })
-  .on('uncaughtException', err => {
-    console.error(err, 'Uncaught Exception thrown');
-    partylog(err + 'Uncaught Exception thrown', true)
-    process.exit(1);
-  });
+})
+    .on('uncaughtException', err => {
+        console.error(err, 'Uncaught Exception thrown');
+        partylog(err + 'Uncaught Exception thrown', true)
+        process.exit(1);
+    });
 
 function getSceneSettings() {
     if (!config.get('devSaveDB')) {
@@ -584,7 +584,7 @@ async function gpAdd(url, docName, title = "", author = "") {
         // q.sort(function (a, b) {
         //     return parseInt(a.docName) - parseInt(b.docName);
         // })
-        var isEx =  false
+        var isEx = false
         // if (!url.toLowerCase().includes('1yYV9-KoSUM')) {
         //     isEx = await isExplicit(new Song(url, '', docName, videoInfo.title, videoInfo.author.name, videoInfo.thumbnail, 'DJ', false)).catch((err) => partylog(err, true))
         // }
@@ -1046,7 +1046,7 @@ function launchExternalDisplay() {
             win.webContents.send('requestedPartyCode', partyID)
         })
 
-        win.on('close', () => {win = null;partylog('Closed External Display Window')})
+        win.on('close', () => { win = null; partylog('Closed External Display Window') })
     }
 }
 
@@ -1087,10 +1087,12 @@ ipcMain.on('newExternalDisplayDataTest', () => {
     partylog('Sent External Display Window Test Data')
 })
 
+var gpOnSnapshotUnSub = null
+
 ipcMain.on('gpUse', () => {
     partylog('GP Use has Started')
     if (!config.get('devSaveDB')) {
-        db.collection('parties').doc(partyID).collection('guestPicks')
+        gpOnSnapshotUnSub = db.collection('parties').doc(partyID).collection('guestPicks')
             .onSnapshot(function (snapshot) {
                 snapshot.docChanges().forEach(function (change) {
                     if (change.type === "added") {
@@ -1136,7 +1138,11 @@ ipcMain.on('requestCurrentRunningData', () => {
     }
 })
 
-ipcMain.on('clearQueue', () => {canary.queue = [];partylog('Cleared GP Queue')})
+ipcMain.on('clearQueue', () => { canary.queue = []; partylog('Cleared GP Queue') })
+
+ipcMain.on('stopGP', () => {
+    gpOnSnapshotUnSub()
+})
 
 function gpDeleteSong(docName) {
     db.collection('parties').doc(partyID).collection('guestPicks').doc(docName).delete().then(() => {
@@ -1146,3 +1152,28 @@ function gpDeleteSong(docName) {
 }
 
 ipcMain.on('gpDeleteSong', (e, docname) => gpDeleteSong(docname))
+
+// ----------------------------
+// KARAOKE
+// ----------------------------
+
+var karaokeOnSnapshotUnSub = null
+
+function karaokeUse() {
+    partylog('Karaoke Use has Started')
+    karaokeOnSnapshotUnSub = db.collection('parties').doc(partyID).collection('karaoke').onSnapshot(function (snapshot) {
+        snapshot.docChanges().forEach(function (change) {
+            if (change.type === "added") {
+                console.log("New Song: ", change.doc.data(), "\n Doc Name: ", change.doc._delegate._document.key.path.segments[3]);
+                if (change.doc.data().url.toLowerCase().includes('youtube.com')) {
+                    karaokeAdd(change.doc.data().url, change.doc.id)
+                } else {
+                    karaokeAdd(change.doc.data(), change.doc.id)
+                }
+            }
+            if (change.type === "removed") {
+                console.log("Removed Song: ", change.doc.data());
+            }
+        });
+    });
+}
