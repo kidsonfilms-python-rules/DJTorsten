@@ -3,6 +3,7 @@ var MusicTempo = require("music-tempo");
 var fs = require("fs");
 const path = require('path')
 const Speaker = require('speaker')
+const tf = require('@tensorflow/tfjs-node')
 
 const audioExts = [".mp3", ".wav"]
 const CLL = []
@@ -143,6 +144,13 @@ async function genSpectrogram(url) {
     }
 }
 
+async function loadModel() {
+    const model = await tf.loadLayersModel('file://../AIDJ/WUP/tfjs_files/model.json')
+    
+    model.predict()
+}
+
 // loadSongtoLibrary('/Users/siddharth/Downloads/Pop & Mainstream/')
-play('/Users/siddharth/Downloads/Pop & Mainstream/DJ Prashant, Jireh - Tumbiton.mp3', 17)
+// play('/Users/siddharth/Downloads/Pop & Mainstream/DJ Prashant, Jireh - Tumbiton.mp3', 17)
 // genSpectrogram('/Users/siddharth/Downloads/Pop & Mainstream/DJ Prashant, Jireh - Tumbiton.mp3')
+loadModel()
