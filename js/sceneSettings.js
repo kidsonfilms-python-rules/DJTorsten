@@ -5,44 +5,45 @@ var fs = require('fs');
 const path = require('path');
 
 const outPath = (process.platform == 'win32' || process.platform == 'linux') ? `${app.getPath('appData')}/.djflame/music/` : `${__dirname}/music/`
-var files = fs.readdirSync(outPath);
-console.log(files)
-// const fi = files.indexOf('Rick Astley - Never Gonna Give You Up (Video).mp3');
-// if (fi > -1) {
-//   files.splice(fi, 1);
-// }
-const clearCacheButton = document.getElementById('clearMusicCacheGPButton')
-console.log(files)
-if (files.length == 0) {
-    clearCacheButton.disabled = true;
-    tippy('#clearCacheProxy', {
-        duration: 0,
-        arrow: true,
-        content: 'Cache is Clear!',
-        offset: [0,-265],
-        inertia: true,
-        animation:'perspective',
-      });
-}
-
-var directory = 'music'
-
-clearCacheButton.addEventListener('click', () => {
-    for (const file of files) {
-        fs.unlink(path.join(directory, file), err => {
-          if (err) throw err;
-          clearCacheButton.disabled = true;
-    tippy('#clearCacheProxy', {
-        duration: 0,
-        arrow: true,
-        content: 'Cache is Clear!',
-        offset: [0,-1000],
-        inertia: true,
-        animation:'perspective',
-      });
-        });
-      }
-})
+var files = fs.readdir(outPath).then((files) => {
+    console.log(files)
+    // const fi = files.indexOf('Rick Astley - Never Gonna Give You Up (Video).mp3');
+    // if (fi > -1) {
+    //   files.splice(fi, 1);
+    // }
+    const clearCacheButton = document.getElementById('clearMusicCacheGPButton')
+    console.log(files)
+    if (files.length == 0) {
+        clearCacheButton.disabled = true;
+        tippy('#clearCacheProxy', {
+            duration: 0,
+            arrow: true,
+            content: 'Cache is Clear!',
+            offset: [0,-265],
+            inertia: true,
+            animation:'perspective',
+          });
+    }
+    
+    var directory = 'music'
+    
+    clearCacheButton.addEventListener('click', () => {
+        for (const file of files) {
+            fs.unlink(path.join(directory, file), err => {
+              if (err) throw err;
+              clearCacheButton.disabled = true;
+        tippy('#clearCacheProxy', {
+            duration: 0,
+            arrow: true,
+            content: 'Cache is Clear!',
+            offset: [0,-1000],
+            inertia: true,
+            animation:'perspective',
+          });
+            });
+          }
+    })
+});
 
 var savedData;
 var currentData;

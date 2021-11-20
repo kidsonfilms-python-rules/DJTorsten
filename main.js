@@ -1,9 +1,9 @@
 // Modules to control application life and create native browser window
 const electron = require('electron')
-const { app, BrowserWindow, ipcMain, desktopCapturer, crashReporter } = electron
+const { app, BrowserWindow, ipcMain, crashReporter } = electron
 const path = require('path')
 const { default: Canary } = require('./Canary')
-const { default: isExplicit } = require('./Canary/explicitEngine.js')
+// const { default: isExplicit } = require('./Canary/explicitEngine.js')
 const http = require('http')
 const rpc = require("discord-rpc");
 var rpcClient = null;
@@ -186,15 +186,14 @@ function isDev() {
 
 if (process.platform == 'darwin') {
     if (!fs.existsSync(`${__dirname}/music/`)) {
-        fs.mkdirSync(`${__dirname}/music/`);
+        fs.mkdir(`${__dirname}/music/`);
     }
 } else if (process.platform == 'win32' || process.platform == 'linux') {
     if (!fs.existsSync(`${app.getPath('appData')}/.djflame/music/`)) {
         if (!fs.existsSync(`${app.getPath('appData')}/.djflame/`)) {
-            fs.mkdirSync(`${app.getPath('appData')}/.djflame/`);
-            fs.mkdirSync(`${app.getPath('appData')}/.djflame/music/`);
+            fs.mkdir(`${app.getPath('appData')}/.djflame/`).then(() => fs.mkdir(`${app.getPath('appData')}/.djflame/music/`));
         } else {
-            fs.mkdirSync(`${app.getPath('appData')}/.djflame/music/`);
+            fs.mkdir(`${app.getPath('appData')}/.djflame/music/`);
         }
     }
 }
@@ -312,13 +311,13 @@ function initLogDir() {
     var logdir = path.join(app.getPath('userData'), 'Party Logs/');
 
     if (!fs.existsSync(logdir)) {
-        fs.mkdirSync(logdir);
+        fs.mkdir(logdir);
     }
 
     var partyLogDir = path.join(logdir, 'party-' + partyID.toString() + '-logs/')
 
     if (!fs.existsSync(partyLogDir)) {
-        fs.mkdirSync(partyLogDir)
+        fs.mkdir(partyLogDir)
     }
 
     const user = config.get('user')
@@ -363,7 +362,7 @@ function initLogDir() {
         process.stderr.pipe(error);
     }
     if (!fs.existsSync(path.join(partyLogDir, 'crash-dumps/'))) {
-        fs.mkdirSync(path.join(partyLogDir, 'crash-dumps/'))
+        fs.mkdir(path.join(partyLogDir, 'crash-dumps/'))
     }
 
     app.setPath('crashDumps', path.join(partyLogDir, 'crash-dumps/'))
