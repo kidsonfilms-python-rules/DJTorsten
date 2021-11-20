@@ -114,20 +114,31 @@ async function tryFillData() {
           $(elem).appendTo("#gpcolumn");
         });
 
-        var vidRaw = `?${url.split('?')[1]}`
-        var v = new URLSearchParams(vidRaw).get('v');
+        var v = url
 
-        var videoInfo = await yts({ videoId: v })
-        // yt.retrieve(v, function (err, videoInfo) {
-        //     if (err) throw err
-        //     vidTitle = videoInfo.title
-        //     console.log(videoInfo)
-        //     songname.innerText = vidTitle;
-        // })
-        vidTitle = videoInfo.title
-        console.log(videoInfo)
-        songname.innerText = vidTitle.replace('[DJFlame EXPLICIT]', '') + (songObj.explicit ? ' [DJFlame EXPLICIT]' : '');
-        songObj.info = videoInfo
+        if (url.toLowerCase().includes('youtube.com')) {
+          var vidRaw = `?${url.split('?')[1]}`
+          v = new URLSearchParams(vidRaw).get('v');
+
+          var videoInfo = await yts({ videoId: v })
+          // yt.retrieve(v, function (err, videoInfo) {
+          //     if (err) throw err
+          //     vidTitle = videoInfo.title
+          //     console.log(videoInfo)
+          //     songname.innerText = vidTitle;
+          // })
+          vidTitle = videoInfo.title
+          console.log(videoInfo)
+          songname.innerText = vidTitle.replace('[DJFlame EXPLICIT]', '') + (songObj.explicit ? ' [DJFlame EXPLICIT]' : '');
+          songObj.info = videoInfo
+        } else {
+          songname.innerText = data.title
+          songObj.info = {
+            title: data.title,
+            author: data.author,
+            thumbnail: "https://player.listenlive.co/templates/StandardPlayerV4/webroot/img/default-cover-art.png"
+          }
+        }
 
         document.getElementById('deleteSongElement').onclick = () => { ipcRenderer.send('gpDeleteSong', docName); song.remove() }
         const instance = tippy(song, {
@@ -193,6 +204,9 @@ var gpStartButton = document.getElementById("startGuestPicks");
 var gpUseButton = document.getElementById("useGuestPicks");
 var gpSkipButton = document.getElementById("skipGuestPicks");
 var gpAddSongButton = document.getElementById("addSongGuestPicks");
+var aidjStartButton = document.getElementById("startAIDJ");
+var aidjSkipButton = document.getElementById("skipAIDJ");
+var aidjAddSongButton = document.getElementById("addSongAIDJ");
 gpStartButton.onclick = (event) => {
   console.log(event);
   ipcRenderer.send('gpStart')
@@ -202,6 +216,9 @@ gpStartButton.onclick = (event) => {
 gpUseButton.onclick = () => {
   gpUse()
 }
+// karaUseButton.onclick = () => {
+//   karaUse()
+// }
 
 gpSkipButton.onclick = () => {
   console.log('SKIPPING...')
@@ -225,7 +242,7 @@ gpAddSongButton.onclick = () => {
       nodeIntegration: true,
       enableRemoteModule: true,
       contextIsolation: false,
-      devTools: false
+      // devTools: false
     },
     alwaysOnTop: true,
     show: false,
@@ -322,8 +339,7 @@ ipcRenderer.on('gpAdd', async (e, data) => {
     $(elem).appendTo("#gpcolumn");
   });
 
-  var vidRaw = `?${url.split('?')[1]}`
-  var v = new URLSearchParams(vidRaw).get('v');
+  var v = url
 
   document.getElementById('deleteSongElement').onclick = () => { ipcRenderer.send('gpDeleteSong', docName); song.remove() }
   const instance = tippy(song, {
@@ -377,18 +393,30 @@ ipcRenderer.on('gpAdd', async (e, data) => {
   });
 
 
-
-  var videoInfo = await yts({ videoId: v })
-  // yt.retrieve(v, function (err, videoInfo) {
-  //     if (err) throw err
-  //     vidTitle = videoInfo.title
-  //     console.log(videoInfo)
-  //     songname.innerText = vidTitle;
-  // })
-  vidTitle = videoInfo.title.replace('[DJFlame EXPLICIT]', '') + (data.explicit ? '  [DJFlame EXPLICIT]' : '')
-  console.log(videoInfo)
-  songname.innerText = vidTitle;
-  songObj.info = videoInfo
+  if (url.toLowerCase().includes('youtube.com')) {
+    var vidRaw = `?${url.split('?')[1]}`
+    var v = new URLSearchParams(vidRaw).get('v');
+    var videoInfo = await yts({ videoId: v })
+    // yt.retrieve(v, function (err, videoInfo) {
+    //     if (err) throw err
+    //     vidTitle = videoInfo.title
+    //     console.log(videoInfo)
+    //     songname.innerText = vidTitle;
+    // })
+    vidTitle = videoInfo.title.replace('[DJFlame EXPLICIT]', '') + (data.explicit ? '  [DJFlame EXPLICIT]' : '')
+    console.log(videoInfo)
+    songname.innerText = vidTitle;
+    songObj.info = videoInfo
+  } else {
+    songname.innerText = data.title
+    songObj.info = {
+      title: data.title,
+      author: {
+        name: data.author
+      },
+      thumbnail: "https://player.listenlive.co/templates/StandardPlayerV4/webroot/img/default-cover-art.png"
+    }
+  }
 })
 
 var gpuseval = 0
@@ -406,22 +434,27 @@ function gpUse() {
     document.getElementById('gpqueuediv').style = 'display: none;'
     q = []
     ipcRenderer.send('clearQueue')
+    ipcRenderer.send('stopGP')
     document.getElementById('useGuestPicks').value = 'USE'
     document.getElementById('gpcolumn').textContent = '';
     switchButton('start')
   }
 }
+function aidjUse() {
+  switchButton('start', 'AIDJ')
+  ipcRenderer.send('aidjStart')
+}
 
-function switchButton(switchto) {
+function switchButton(switchto, scene="GuestPicks") {
   if (switchto == 'stop') {
     gpStartButton.value = 'STOP'
     gpStartButton.style.backgroundColor = 'red'
-    document.getElementById('useGuestPicks').value = 'PAUSE'
+    document.getElementById('use' + scene).value = 'PAUSE'
     gpStartButton.onclick = function (event) {
       console.log(event);
       ipcRenderer.send('stop', 'random shit')
-      document.getElementById('startGuestPicks').style = 'display: none;'
-      document.getElementById('useGuestPicks').value = 'START'
+      document.getElementById('start' + scene).style = 'display: none;'
+      document.getElementById('use' + scene).value = 'START'
       document.getElementById('gpqueuediv').style = 'display: none;'
       audioPlayerContainer.style.display = 'none';
       audioPlayerContainer.style.visibility = 'none';
@@ -429,7 +462,7 @@ function switchButton(switchto) {
     }
   } else if (switchto == 'start') {
     gpStartButton.value = 'START'
-    document.getElementById('useGuestPicks').value = 'UNHAND'
+    document.getElementById('use' + scene).value = 'UNHAND'
     gpStartButton.style.backgroundColor = 'rgb(24, 24, 24)'
     gpStartButton.onclick = function (event) {
       console.log(event);
@@ -598,6 +631,7 @@ ipcRenderer.on('canaryTimeChange', (e, d) => {
   audioTime.innerText = `${secondsToHms(Math.trunc(d.seconds))} / ${secondsToHms(d.duration)}`
   showRangeProgress(seekSlider)
   var vidInfo = q[d.index].info
+  if (!vidInfo.videoId) vidInfo.videoId = q[d.index].url
   currentSong = vidInfo
 
   const vidTitle = document.getElementById('audioControllerTitle')

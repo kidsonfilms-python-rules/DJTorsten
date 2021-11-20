@@ -1,15 +1,16 @@
 const electron = require('electron')
 const ipcRenderer = electron.ipcRenderer;
 const BrowserWindow = electron.remote.BrowserWindow
-const onChange = require('on-change');
 var fs = require('fs');
 const path = require('path');
 
-ipcRenderer.invoke('getAppDataPath', 'fileName.txt').then((result) => {
-    const outPath = (process.platform == 'win32' || process.platform == 'linux') ? `${result}/.djflame/music/` : `${__dirname}/music/`
-    var files = fs.readdirSync(outPath);
+const outPath = (process.platform == 'win32' || process.platform == 'linux') ? `${app.getPath('appData')}/.djflame/music/` : `${__dirname}/music/`
+var files = fs.readdir(outPath).then((files) => {
     console.log(files)
-
+    // const fi = files.indexOf('Rick Astley - Never Gonna Give You Up (Video).mp3');
+    // if (fi > -1) {
+    //   files.splice(fi, 1);
+    // }
     const clearCacheButton = document.getElementById('clearMusicCacheGPButton')
     console.log(files)
     if (files.length == 0) {
@@ -18,38 +19,31 @@ ipcRenderer.invoke('getAppDataPath', 'fileName.txt').then((result) => {
             duration: 0,
             arrow: true,
             content: 'Cache is Clear!',
-            offset: [0, -265],
+            offset: [0,-265],
             inertia: true,
-            animation: 'perspective',
-        });
+            animation:'perspective',
+          });
     }
-
+    
     var directory = 'music'
-
+    
     clearCacheButton.addEventListener('click', () => {
         for (const file of files) {
             fs.unlink(path.join(directory, file), err => {
-                if (err) throw err;
-                clearCacheButton.disabled = true;
-                tippy('#clearCacheProxy', {
-                    duration: 0,
-                    arrow: true,
-                    content: 'Cache is Clear!',
-                    offset: [0, -1000],
-                    inertia: true,
-                    animation: 'perspective',
-                });
+              if (err) throw err;
+              clearCacheButton.disabled = true;
+        tippy('#clearCacheProxy', {
+            duration: 0,
+            arrow: true,
+            content: 'Cache is Clear!',
+            offset: [0,-1000],
+            inertia: true,
+            animation:'perspective',
+          });
             });
-        }
+          }
     })
 });
-
-// const fi = files.indexOf('Rick Astley - Never Gonna Give You Up (Video).mp3');
-// if (fi > -1) {
-//   files.splice(fi, 1);
-// }
-
-
 
 var savedData;
 var currentData;

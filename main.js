@@ -1,9 +1,9 @@
 // Modules to control application life and create native browser window
 const electron = require('electron')
-const { app, BrowserWindow, ipcMain, desktopCapturer } = electron
+const { app, BrowserWindow, ipcMain, crashReporter } = electron
 const path = require('path')
 const { default: Canary } = require('./Canary')
-const { default: isExplicit } = require('./Canary/explicitEngine.js')
+// const { default: isExplicit } = require('./Canary/explicitEngine.js')
 const http = require('http')
 const rpc = require("discord-rpc");
 var rpcClient = null;
@@ -84,7 +84,7 @@ app.whenReady().then(async () => {
     canaryWindow.webContents.on('did-finish-load', function () {
         console.log('[CANARY] Loading Engine...')
         rpcClient = new rpc.Client({ transport: 'ipc' });
-        canary = new Canary(canaryWindow.webContents, rpcClient, eventEmitter)
+        canary = new Canary(canaryWindow.webContents, rpcClient, eventEmitter, mainWindow.webContents)
         canaryWindow.webContents.session.webRequest.onHeadersReceived({ urls: ["*://*/*"] },
             (d, c) => {
                 if (d.responseHeaders['X-Frame-Options']) {
@@ -140,7 +140,7 @@ const { autoUpdater } = require("electron-updater");
 //--------------------
 // Guest Picks Packages
 var Soundplayer = require('play-sound')(opts = {})
-const ytdl = require('youtube-mp3-downloader');
+// const ytdl = require('youtube-mp3-downloader');
 const fs = require('fs')
 const EventEmitter = require('events');
 const yts = require('yt-search')
@@ -192,15 +192,14 @@ function isDev() {
 
 if (process.platform == 'darwin') {
     if (!fs.existsSync(`${__dirname}/music/`)) {
-        fs.mkdirSync(`${__dirname}/music/`);
+        fs.mkdir(`${__dirname}/music/`);
     }
 } else if (process.platform == 'win32' || process.platform == 'linux') {
     if (!fs.existsSync(`${app.getPath('appData')}/.djflame/music/`)) {
         if (!fs.existsSync(`${app.getPath('appData')}/.djflame/`)) {
-            fs.mkdirSync(`${app.getPath('appData')}/.djflame/`);
-            fs.mkdirSync(`${app.getPath('appData')}/.djflame/music/`);
+            fs.mkdir(`${app.getPath('appData')}/.djflame/`).then(() => fs.mkdir(`${app.getPath('appData')}/.djflame/music/`));
         } else {
-            fs.mkdirSync(`${app.getPath('appData')}/.djflame/music/`);
+            fs.mkdir(`${app.getPath('appData')}/.djflame/music/`);
         }
     }
 }
@@ -258,34 +257,30 @@ ipcMain.on('attemptAutoSignIn', () => {
 })
 
 var checkedForUpdates = false
-// autoUpdater.setFeedURL({
-//     provider: "github",
-//     owner: "kidsonfilms-python-rules",
-//     repo: 'DJFlame-Releases'
-// })
+autoUpdater.setFeedURL({
+    provider: "github",
+    owner: "kidsonfilms-python-rules",
+    repo: 'DJFlame-Releases'
+})
 
-// ipcMain.on('checkForUpdates', () => {
-//     console.log('checking...')
-//     autoUpdater.checkForUpdates();
-// })
 ipcMain.on('checkForUpdates', () => {
     console.log('checking...')
-    mainWindow.webContents.send('noUpdateAvailable')
+    autoUpdater.checkForUpdates();
 })
 
 
 // /*checking for updates*/
-// autoUpdater.on("checking-for-update", () => {
-//     console.log('Checking for an Update')
-//     mainWindow.webContents.send('checkingForUpdates')
-// });
+autoUpdater.on("checking-for-update", () => {
+    console.log('Checking for an Update')
+    mainWindow.webContents.send('checkingForUpdates')
+});
 
 // /*No updates available*/
-// autoUpdater.on("update-not-available", info => {
-//     console.log('DJFlame up-to-date!')
-//     checkedForUpdates = true
-    // mainWindow.webContents.send('noUpdateAvailable')
-// });
+autoUpdater.on("update-not-available", info => {
+    console.log('DJFlame up-to-date!')
+    checkedForUpdates = true
+    mainWindow.webContents.send('noUpdateAvailable')
+});
 
 /*New Update Available*/
 autoUpdater.on("update-available", info => {
@@ -318,6 +313,89 @@ ipcMain.on('joinLastParty', () => {
     }
 })
 
+function initLogDir() {
+    var logdir = path.join(app.getPath('userData'), 'Party Logs/');
+
+    if (!fs.existsSync(logdir)) {
+        fs.mkdir(logdir);
+    }
+
+    var partyLogDir = path.join(logdir, 'party-' + partyID.toString() + '-logs/')
+
+    if (!fs.existsSync(partyLogDir)) {
+        fs.mkdir(partyLogDir)
+    }
+
+    const user = config.get('user')
+    const os = require('os')
+
+    if (!fs.existsSync(path.join(partyLogDir, 'party-config-log.json'))) {
+        var partyConfigLog = {
+            partyID: partyID,
+            partyLogCreationDate: new Date(),
+            partySettingsRevisions: 0,
+            user: {
+                uid: user.uid,
+                email: user.email,
+                emailVerified: user.emailVerified,
+                lastLoginDate: user.lastLoginAt,
+                userCreationDate: user.createdAt
+            },
+            djflameVersion: require('./package.json').version,
+            systemInfo: {
+                clientOS: os.platform(),
+                clientOSVersion: os.version(),
+                clientOSArch: os.arch(),
+                clientCPUCores: os.cpus().length,
+                clientCPUInfo: os.cpus(),
+                clientTotalMem: os.totalmem(),
+            },
+            systemSoftwareInfo: {
+                nodeVersion: process.version,
+                chromeVersion: process.versions['chrome'],
+                electronVersion: process.versions.electron
+            }
+        }
+        var partyConfigLogStr = JSON.stringify(partyConfigLog)
+        fs.writeFile(path.join(partyLogDir, 'party-config-log.json'), partyConfigLogStr, 'utf8', () => { });
+    }
+
+    if (!fs.existsSync(path.join(partyLogDir, 'party-events.log'))) {
+        fs.writeFile(path.join(partyLogDir, 'party-events.log'), '[' + new Date().toISOString() + '] LOG START', () => { })
+    }
+    if (!fs.existsSync(path.join(partyLogDir, 'node-errors.log'))) {
+        const error = fs.createWriteStream(partyLogDir + '/node.error.log', { flags: 'a' });
+        process.stderr.pipe(error);
+    }
+    if (!fs.existsSync(path.join(partyLogDir, 'crash-dumps/'))) {
+        fs.mkdir(path.join(partyLogDir, 'crash-dumps/'))
+    }
+
+    app.setPath('crashDumps', path.join(partyLogDir, 'crash-dumps/'))
+    crashReporter.start({ uploadToServer: false })
+}
+
+function partylog(message, error = false, thread = 'MAIN') {
+    const log = `${error ? '\n\n----------------------ERROR THROWN----------------------' : ''}\n[${new Date().toISOString()}] [${thread}]${(error ? ' [ERROR]' : '')} ${message}${error ? '\n----------------------ERROR END----------------------\n' : ''}`
+    fs.open(path.join(path.join(path.join(app.getPath('userData'), 'Party Logs/'), 'party-' + partyID.toString() + '-logs/'), 'party-events.log'), 'a', 666, function (e, id) {
+
+        fs.write(id, log, null, 'utf8', function () {
+            fs.close(id, function () {
+            });
+        });
+    });
+}
+
+process.on('unhandledRejection', (reason, p) => {
+    console.error(reason, 'Unhandled Rejection at Promise', p);
+    partylog(reason + 'Unhandled Rejection at Promise' + p, true)
+})
+    .on('uncaughtException', err => {
+        console.error(err, 'Uncaught Exception thrown');
+        partylog(err + 'Uncaught Exception thrown', true)
+        process.exit(1);
+    });
+
 function getSceneSettings() {
     if (!config.get('devSaveDB')) {
         db.collection('parties').doc(partyID).get().then((doc) => {
@@ -347,6 +425,9 @@ function getSceneSettings() {
         }).catch((error) => {
             console.log("Error getting document:", error);
         });
+        initLogDir()
+        partylog('Joined ' + partyID + ' Party')
+        partylog('Found Scene Settings')
     } else {
         console.log('Entering Developer Database Saving Mode...')
         config.set('sceneSettings', {
@@ -368,6 +449,7 @@ function getSceneSettings() {
 
 ipcMain.on('sceneSettingsChange', (e, data) => {
     // console.log(data)
+    partylog('Scene Settings Changed')
     config.set('sceneSettings', data)
     db.collection('parties').doc(partyID).set({
         guestPicks: data.general.guestPicks,
@@ -445,6 +527,7 @@ ipcMain.on('requestPartyCode', () => {
 ipcMain.on('enterDeveloperMode', () => {
     partyID = '053467'
     getSceneSettings()
+    partylog('Entered Developer Mode')
     mainWindow.loadFile('./index.html')
 })
 
@@ -495,25 +578,37 @@ function arrayContains(needle, haystack) {
     return (haystack.indexOf(needle));
 }
 
-async function gpAdd(url, docName) {
+async function gpAdd(url, docName, title = "", author = "") {
     console.info(`Adding ${url} to Playing Queue...`)
-    var vidRaw = `?${url.split('?')[1]}`
-    var v = new URLSearchParams(vidRaw).get('v');
-    var videoInfo = await yts({ videoId: v })
-    // q.push(new Song(url, '', docName, videoInfo.title, videoInfo.author.name, 'DJ'))
-    // q.sort(function (a, b) {
-    //     return parseInt(a.docName) - parseInt(b.docName);
-    // })
-    const isEx = await isExplicit(new Song(url, '', docName, videoInfo.title, videoInfo.author.name, videoInfo.thumbnail, 'DJ', false))
-    canary.add(new Song(url, '', docName, videoInfo.title, videoInfo.author.name, videoInfo.thumbnail, 'DJ', isEx))
-    canary.queue.sort(function (a, b) {
-        return parseInt(a.docName) - parseInt(b.docName);
-    })
-    // console.log(canary.queue)
-    if (isEx) {
-        console.log('New Song ' + videoInfo.title + ' Explicit!')
+    partylog('Added New Song to Local Queue, URL: ' + url)
+    if (url.toLowerCase().includes('youtube.com')) {
+        var vidRaw = `?${url.split('?')[1]}`
+        var v = new URLSearchParams(vidRaw).get('v');
+        var videoInfo = await yts({ videoId: v })
+        // q.push(new Song(url, '', docName, videoInfo.title, videoInfo.author.name, 'DJ'))
+        // q.sort(function (a, b) {
+        //     return parseInt(a.docName) - parseInt(b.docName);
+        // })
+        var isEx = false
+        // if (!url.toLowerCase().includes('1yYV9-KoSUM')) {
+        //     isEx = await isExplicit(new Song(url, '', docName, videoInfo.title, videoInfo.author.name, videoInfo.thumbnail, 'DJ', false)).catch((err) => partylog(err, true))
+        // }
+        canary.add(new Song(url, '', docName, videoInfo.title, videoInfo.author.name, videoInfo.thumbnail, 'DJ', isEx))
+        canary.queue.sort(function (a, b) {
+            return parseInt(a.docName) - parseInt(b.docName);
+        })
+        // console.log(canary.queue)
+        if (isEx) {
+            console.log('New Song ' + videoInfo.title + ' Explicit!')
+        }
+        mainWindow.webContents.send('gpAdd', { url, docName, explicit: isEx })
+    } else {
+        canary.add(new Song(url, '', docName, title, author, 'https://player.listenlive.co/templates/StandardPlayerV4/webroot/img/default-cover-art.png', 'DJ', false))
+        canary.queue.sort(function (a, b) {
+            return parseInt(a.docName) - parseInt(b.docName);
+        })
+        mainWindow.webContents.send('gpAdd', { url, docName, explicit: false, title: title, author: author })
     }
-    mainWindow.webContents.send('gpAdd', { url, docName, explicit: isEx })
 }
 
 ipcMain.on('gpAdd', (event, data) => {
@@ -521,26 +616,37 @@ ipcMain.on('gpAdd', (event, data) => {
 })
 
 function gpAddDb(songList) {
-    console.warn('Still in EXPERIMENTAL')
+    partylog(`Added New Song${(songList.length > 1) ? 's' : ''} to Database Queue, URL${(songList.length > 1) ? 's' : ''}: ${songList}`)
     if (config.get('devSaveDB')) {
         songList.forEach((s) => {
             gpAdd(s, q.length + 4)
         })
     } else {
         songList.forEach((s, i) => {
+            console.log(s)
+            var title = ""
+            const payload = {
+                url: s,
+                submitter: "DJ",
+            }
+            if (!s.toLowerCase().includes('youtube.com')) {
+                title = path.basename(s).split('.')[0]
+                payload.title = title
+                payload.artist = 'Unknown'
+            }
             db.collection('parties').doc(partyID).get().then((doc) => {
-                db.collection('parties').doc(partyID).collection('guestPicks').doc((doc.data().gpCurrentDocName + 1).toString()).set({
-                    url: s,
-                    submitter: "DJ"
-                })
+                db.collection('parties').doc(partyID).collection('guestPicks').doc((doc.data().gpCurrentDocName + 1).toString()).set(payload)
                     .then(function () {
                         console.log("Document successfully written!");
+                        partylog(`Song Document ${s} Succesfully Written`)
                         db.collection('parties').doc(partyID).update({
                             gpCurrentDocName: firebase.firestore.FieldValue.increment(1)
                         });
+                        sleep(1000)
                     })
                     .catch(function (error) {
                         console.error("Error writing document: ", error);
+                        partylog("Error writing document: " + error, true)
                     });
             })
         })
@@ -646,9 +752,15 @@ async function canaryPlay(song, songLen, index) {
         db.collection('parties').doc(partyID).set({
             gpNowPlaying: index
         }, { merge: true })
-        canary.play(song, songLen, index).then(() => {
-            resolve()
-        })
+        if (song.url.toLowerCase().includes('youtube.com')) {
+            canary.play(song, songLen, index).then(() => {
+                resolve()
+            })
+        } else {
+            canary.playLocal(song, songLen, index).then(() => {
+                resolve()
+            })
+        }
         mainWindow.webContents.send('canaryNewSong')
 
         if (win) {
@@ -716,46 +828,48 @@ async function canaryPlay(song, songLen, index) {
     })
 }
 
-async function gpDownload(link, index) {
-    if (downloadedq.map(a => a.url).includes(link)) {
-        var linkMap = await downloadedq.map(a => a.url)
-        var cachei = await arrayContains(link, linkMap)
-        eventEmitter.emit(`downloadFinished ${index}`, downloadedq[cachei].i);
-        return 'Already Downloaded'
-    }
-    console.info(`Downloading ${link}, index ${index}...`)
-    const probar = q[index].progressDiv
-    var vidRaw = `?${link.split('?')[1]}`
-    var v = new URLSearchParams(vidRaw).get('v');
-    const ffmpegPath = isDev() ? `${__dirname}/assets/ffmpeg/ffmpeg` : `${__dirname}/../app.asar.unpacked/assets/ffmpeg/ffmpeg`
-    const outPath = (process.platform == 'win32' || process.platform == 'linux') ? `${app.getPath('appData')}/.djflame/music/` : `${__dirname}/music/`
-    const DOWNLOADER = new ytdl({
-        "ffmpegPath": ffmpegPath, // || FFmpeg binary location
-        "outputPath": outPath, //  || Output file location (default: the home directory)
-        "youtubeVideoQuality": "highestaudio", //   || Desired video quality (default: highestaudio
-        "progressTimeout": 0, //    || Interval in ms for the progress reports (default: 1000)
-    });
-    DOWNLOADER.on("progress", function (progress) {
-        console.log(JSON.stringify(progress));
-        mainWindow.webContents.send('setProbarWidth', { link: link, width: progress.progress.percentage.toString().split('.')[0] })
-        // probar.style.width = `${progress.progress.percentage.toString().split('.')[0]}%`
-    });
-    DOWNLOADER.download(v, `${index}.mp3`)
-    DOWNLOADER.on("finished", function (err, data) {
-        DOWNLOADER.removeAllListeners("progress")
-        if (err) console.error(err)
-        mainWindow.webContents.send('setProbarWidth', { link: link, width: "0" })
-        console.info('Downloaded: \n', JSON.stringify(data));
-        downloadedq.push(new DownloadSong(link, index, data.title, data.thumbnail, data.artist))
-        eventEmitter.emit(`downloadFinished ${index}`, index);
-    });
-}
+// async function gpDownload(link, index) {
+//     if (downloadedq.map(a => a.url).includes(link)) {
+//         var linkMap = await downloadedq.map(a => a.url)
+//         var cachei = await arrayContains(link, linkMap)
+//         eventEmitter.emit(`downloadFinished ${index}`, downloadedq[cachei].i);
+//         return 'Already Downloaded'
+//     }
+//     console.info(`Downloading ${link}, index ${index}...`)
+//     const probar = q[index].progressDiv
+//     var vidRaw = `?${link.split('?')[1]}`
+//     var v = new URLSearchParams(vidRaw).get('v');
+//     const ffmpegPath = isDev() ? `${__dirname}/assets/ffmpeg/ffmpeg` : `${__dirname}/../app.asar.unpacked/assets/ffmpeg/ffmpeg`
+//     const outPath = (process.platform == 'win32' || process.platform == 'linux') ? `${app.getPath('appData')}/.djflame/music/` : `${__dirname}/music/`
+//     const DOWNLOADER = new ytdl({
+//         "ffmpegPath": ffmpegPath, // || FFmpeg binary location
+//         "outputPath": outPath, //  || Output file location (default: the home directory)
+//         "youtubeVideoQuality": "highestaudio", //   || Desired video quality (default: highestaudio
+//         "progressTimeout": 0, //    || Interval in ms for the progress reports (default: 1000)
+//     });
+//     DOWNLOADER.on("progress", function (progress) {
+//         console.log(JSON.stringify(progress));
+//         mainWindow.webContents.send('setProbarWidth', { link: link, width: progress.progress.percentage.toString().split('.')[0] })
+//         // probar.style.width = `${progress.progress.percentage.toString().split('.')[0]}%`
+//     });
+//     DOWNLOADER.download(v, `${index}.mp3`)
+//     DOWNLOADER.on("finished", function (err, data) {
+//         DOWNLOADER.removeAllListeners("progress")
+//         if (err) console.error(err)
+//         mainWindow.webContents.send('setProbarWidth', { link: link, width: "0" })
+//         console.info('Downloaded: \n', JSON.stringify(data));
+//         downloadedq.push(new DownloadSong(link, index, data.title, data.thumbnail, data.artist))
+//         eventEmitter.emit(`downloadFinished ${index}`, index);
+//     });
+// }
 
 async function gpStart() {
     if (status == 'STARTED') { console.error('Already Started'); return '' }
     console.info('Starting...')
+    partylog('Starting GP Scene. Entered Mode: Button')
     eventEmitter.on('stop', () => {
         console.info('Stopping...')
+        partylog('Stopping GP Scene. Exit Cause: DJ')
         status = 'STOPPED'
         q = []
         downloadedq = []
@@ -775,6 +889,7 @@ async function gpStart() {
     while (true) {
         if (status != 'STARTED') {
             console.info('Stopped Status, Stopping Function.')
+            partylog('Stopping Function Since GP has Stopped')
             return 'Stopped by DJ';
         }
         if (index < canary.queue.length) {
@@ -787,6 +902,7 @@ async function gpStart() {
                 await sleep(1000)
             } else if (gpPlayAfter == 1) {
                 console.log('Picking Random Song!')
+                partylog('Picking Random Song Since No Songs Left in Queue')
                 await gpMain(Math.floor(Math.random() * canary.queue.length), downloadingStatus).then(() => {
                     console.log('Song Done!')
                 })
@@ -800,6 +916,7 @@ ipcMain.on('gpStart', () => gpStart())
 async function gpMain(index, downloadingStatus) {
     if (status != 'STARTED') {
         console.error('Status: STOPPED')
+        partylog('Stopping Function Since GP has Stopped')
         return 'Stopped by DJ';
     }
     return new Promise(async (resolve) => {
@@ -818,6 +935,7 @@ async function gpMain(index, downloadingStatus) {
             songLength = await sceneSetting.guestPicks.songLength.range1
         }
         console.log('playing for ', songLength, ' seconds')
+        partylog('Playing Song for ' + songLength + ' seconds')
 
         canaryPlay(canary.queue[index], songLength, index).then(() => {
             resolve()
@@ -860,11 +978,13 @@ ipcMain.on('canaryHeartSong', async (e, d) => {
         console.log('Removing new Fav Song')
         config.set('heartSongs', favSongs.filter(e => e !== d))
         console.log(config.get('heartSongs'))
+        partylog('Removed Favorite Song ' + d)
     } else {
         console.log('Setting new Fav Song')
         favSongs.push(d)
         config.set('heartSongs', favSongs)
         console.log(config.get('heartSongs'))
+        partylog('Set New Favorite Song ' + d)
     }
 })
 
@@ -884,6 +1004,7 @@ var choiceExternalDisplay = null
 
 ipcMain.on('choiceExternalDisplay', (e, d) => {
     console.log(d)
+    partylog(`Set new External Display, Raw Data: ${d}`)
     choiceExternalDisplay = d
 })
 
@@ -895,6 +1016,7 @@ function launchExternalDisplay() {
         win = null
     }
     if (choiceExternalDisplay) {
+        partylog('Launching New External Display Window')
         var d = choiceExternalDisplay
         var dchoice = '1'
         let displays = electron.screen.getAllDisplays()
@@ -925,10 +1047,11 @@ function launchExternalDisplay() {
         })
 
         ipcMain.on('requestPartyCodeExDisplay', () => {
+            partylog('External Display Requested Party ID, Sent ' + partyID)
             win.webContents.send('requestedPartyCode', partyID)
         })
 
-        win.on('close', () => win = null)
+        win.on('close', () => { win = null; partylog('Closed External Display Window') })
     }
 }
 
@@ -966,11 +1089,15 @@ ipcMain.on('newExternalDisplayDataTest', () => {
         ]
     }
     win.webContents.send('newExternalDisplayData', data)
+    partylog('Sent External Display Window Test Data')
 })
 
+var gpOnSnapshotUnSub = null
+
 ipcMain.on('gpUse', () => {
+    partylog('GP Use has Started')
     if (!config.get('devSaveDB')) {
-        db.collection('parties').doc(partyID).collection('guestPicks')
+        gpOnSnapshotUnSub = db.collection('parties').doc(partyID).collection('guestPicks')
             .onSnapshot(function (snapshot) {
                 snapshot.docChanges().forEach(function (change) {
                     if (change.type === "added") {
@@ -980,7 +1107,11 @@ ipcMain.on('gpUse', () => {
                         // console.log(change.doc._delegate._document)
                         // console.log(change.doc._delegate._document.key)
                         // console.log(change.doc._delegate._document.key.path)
-                        gpAdd(change.doc.data().url, change.doc.id)
+                        if (change.doc.data().url.toLowerCase().includes('youtube.com')) {
+                            gpAdd(change.doc.data().url, change.doc.id)
+                        } else {
+                            gpAdd(change.doc.data().url, change.doc.id, change.doc.data().title, change.doc.data().artist)
+                        }
                     }
                     if (change.type === "removed") {
                         console.log("Removed Song: ", change.doc.data());
@@ -1002,7 +1133,9 @@ ipcMain.on('gpUse', () => {
 })
 
 ipcMain.on('requestCurrentRunningData', () => {
+    partylog('Ren. Process Requested Current Running Scene')
     if (canary.queue.length != 0) {
+        partylog('Sent Renderer Process GP is Running')
         mainWindow.webContents.send('callbackCurrentRunningData', {
             runningScene: 'GP',
             queue: canary.queue
@@ -1010,12 +1143,42 @@ ipcMain.on('requestCurrentRunningData', () => {
     }
 })
 
-ipcMain.on('clearQueue', () => q = [])
+ipcMain.on('clearQueue', () => { canary.queue = []; partylog('Cleared GP Queue') })
+
+ipcMain.on('stopGP', () => {
+    gpOnSnapshotUnSub()
+})
 
 function gpDeleteSong(docName) {
     db.collection('parties').doc(partyID).collection('guestPicks').doc(docName).delete().then(() => {
         canary.queue.splice(docName, 1)
+        partylog('Deleted GP Song, Doc Name: ' + docName)
     })
 }
 
 ipcMain.on('gpDeleteSong', (e, docname) => gpDeleteSong(docname))
+
+// ----------------------------
+// KARAOKE
+// ----------------------------
+
+var karaokeOnSnapshotUnSub = null
+
+function karaokeUse() {
+    partylog('Karaoke Use has Started')
+    karaokeOnSnapshotUnSub = db.collection('parties').doc(partyID).collection('karaoke').onSnapshot(function (snapshot) {
+        snapshot.docChanges().forEach(function (change) {
+            if (change.type === "added") {
+                console.log("New Song: ", change.doc.data(), "\n Doc Name: ", change.doc._delegate._document.key.path.segments[3]);
+                if (change.doc.data().url.toLowerCase().includes('youtube.com')) {
+                    karaokeAdd(change.doc.data().url, change.doc.id)
+                } else {
+                    karaokeAdd(change.doc.data(), change.doc.id)
+                }
+            }
+            if (change.type === "removed") {
+                console.log("Removed Song: ", change.doc.data());
+            }
+        });
+    });
+}
