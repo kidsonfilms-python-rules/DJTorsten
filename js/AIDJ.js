@@ -4,6 +4,7 @@ var fs = require("fs");
 const path = require('path')
 const Speaker = require('speaker')
 const tf = require('@tensorflow/tfjs-node')
+const aidj = require('../AIDJ/src/build/Release/djflame_aidj')
 
 const audioExts = [".mp3", ".wav"]
 const CLL = []
@@ -153,4 +154,5 @@ async function loadModel() {
 // loadSongtoLibrary('/Users/siddharth/Downloads/Pop & Mainstream/')
 // play('/Users/siddharth/Downloads/Pop & Mainstream/DJ Prashant, Jireh - Tumbiton.mp3', 17)
 // genSpectrogram('/Users/siddharth/Downloads/Pop & Mainstream/DJ Prashant, Jireh - Tumbiton.mp3')
-loadModel()
+// loadModel()
+console.log(aidj.play())
