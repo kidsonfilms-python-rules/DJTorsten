@@ -156,7 +156,8 @@ async function loadModel() {
 // genSpectrogram('/Users/siddharth/Downloads/Pop & Mainstream/DJ Prashant, Jireh - Tumbiton.mp3')
 // loadModel()
 // console.log(aidj.start())
-aidj.start((msg) => {
-    console.log(msg);
-    console.log("CALLBACK TRIGGERED")
-  });
+// aidj.start((msg) => {
+//     console.log(msg);
+//     console.log("CALLBACK TRIGGERED")
+//   });
+aidj.testThreads()

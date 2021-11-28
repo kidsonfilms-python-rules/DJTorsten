@@ -1,6 +1,5 @@
 #include <node.h>
-
-#include "ICRingBuffer.h"
+#include <thread>
 
 #ifdef WINDOWS_OS
 #include <iostream>
@@ -9,6 +8,8 @@
 #include <mmsystem.h>
 #include <stdio.h>
 #endif
+
+#include "ringBuffer.h"
 
 namespace djflame_aidj
 {
@@ -41,19 +42,42 @@ namespace djflame_aidj
         std::streamsize size = file.tellg();
         file.seekg(0, std::ios::beg);
 
+        // test ring buffer
+        ringBuffer r0(204, 1);
+        printf("'hi 1'\n");
+
         std::vector<char> buffer(size);
         if (file.read(buffer.data(), size))
         {
             /* worked! */
         }
-        // for (int i=0;i<44;i++) {
-        //     printf("[%d]: %u \n", i+1, buffer[i]);
-        // }
+
+        bool worked = r0.writeChunk((void *)(buffer.data() + 44), 120);
+
+        printf("Did the write work? %d\n", worked);
+        printf("head: %d\n", r0.head());
+        printf("tail: %d\n", r0.tail());
+
+        worked = r0.writeChunk((void *)(buffer.data() + r0.rawSize(120) + 44), 50);
+        printf("Did the write work? %d\n", worked);
+        printf("head: %d\n", r0.head());
+        printf("tail: %d\n", r0.tail());
+
+        char *bDATA = r0.readChunk(10);
+
+        for (int i = 0; i < 44; i++)
+        {
+            printf("[%d]: %u -> %u \n", i + 1, bDATA[i], buffer[i + 44]);
+        }
+
+        // copy song data to ring buffer
+
+        printf("%d\n%d\n%d\n", *(int *)(buffer.data() + 24), *(int *)(buffer.data() + 28), *(short *)(buffer.data() + 32));
+
         printf("============= AUDIO INFO =============\nChannels: %d\nSamples/s: %d\nAverage Bytes/s: %d\nBlock Align: %d\n======================================\n", *(short *)(buffer.data() + 22), *(int *)(buffer.data() + 24), *(int *)(buffer.data() + 28), *(short *)(buffer.data() + 32));
-        // printf("size of buffer: %d\n", (int)sizeof(buffer.data()));
         // bool result = PlaySound("C:\\Users\\Siddharth Ray\\Desktop\\Project DJTorsten\\AIDJ\\src\\test-isaac.wav", NULL, SND_SYNC);
         HWAVEOUT hWaveOut = 0;
-        WAVEFORMATEX wfx = {WAVE_FORMAT_PCM, *(short *)(buffer.data() + 22), *(int *)(buffer.data() + 24), *(int *)(buffer.data() + 28), *(short *)(buffer.data() + 32), 16, 0};
+        WAVEFORMATEX wfx = {WAVE_FORMAT_PCM, 2, 48000, 192000, 4, 16, 0};
 
         waveOutOpen(&hWaveOut, WAVE_MAPPER, &wfx, 0, 0, CALLBACK_NULL);
         // char buffer[4000 * 60] = {};
@@ -62,18 +86,32 @@ namespace djflame_aidj
         // for (DWORD t = 0; t < sizeof(buffer); ++t)
         //     buffer[t] = static_cast<char>((((t * (t >> 8 | t >> 9) & 46 & t >> 8)) ^ (t & t >> 13 | t >> 6)) & 0xFF);
 
-        WAVEHDR header = {buffer.data() + 44, size - 44, 0, 0, 0, 1, 0, 0};
+        printf("buffer size: %d\n", r0.rawSize(123));
+        printf("temp buffer size: %d\n", size - 44);
+
+        WAVEHDR header = {bDATA, r0.rawSize(10), 0, 0, 0, 1, 0, 0};
+        WAVEHDR header2 = {r0.readChunk(10), r0.rawSize(10), 0, 0, 0, 1, 0, 0};
+        WAVEHDR header3 = {r0.readChunk(10), r0.rawSize(10), 0, 0, 0, 1, 0, 0};
+        printf("hedr prepared\n");
         waveOutPrepareHeader(hWaveOut, &header, sizeof(WAVEHDR));
+        waveOutPrepareHeader(hWaveOut, &header2, sizeof(WAVEHDR));
+        waveOutPrepareHeader(hWaveOut, &header3, sizeof(WAVEHDR));
+        printf("hedr prepared\n");
         waveOutWrite(hWaveOut, &header, sizeof(WAVEHDR));
+        waveOutWrite(hWaveOut, &header2, sizeof(WAVEHDR));
+        waveOutWrite(hWaveOut, &header3, sizeof(WAVEHDR));
+        printf("hedr prepared\n");
         waveOutUnprepareHeader(hWaveOut, &header, sizeof(WAVEHDR));
+        // waveOutUnprepareHeader(hWaveOut, &header2, sizeof(WAVEHDR));
+        // waveOutUnprepareHeader(hWaveOut, &header3, sizeof(WAVEHDR));
+        printf("hedr prepared\n");
         waveOutClose(hWaveOut);
-        Sleep(202 * 1000);
+        Sleep(34 * 1000);
+
         printf("SONG 1 DONE");
         Local<Value> argv[argc] = {
             String::NewFromUtf8(isolate, "hello world").ToLocalChecked()};
         dcb->Call(context, Null(isolate), argc, argv).ToLocalChecked();
-        // waveOutOpen(1, 0, &m_waveFormat, (DWORD)1, 0, CALLBACK_EVENT);
-        //  waveOutWrite(0, pwh, cbwh);
     }
 
     void run_callback(const FunctionCallbackInfo<Value> &args)
@@ -88,10 +126,32 @@ namespace djflame_aidj
         cb->Call(context, Null(isolate), argc, argv).ToLocalChecked();
     }
 
+    void testThreads(const FunctionCallbackInfo<Value> &args)
+    {
+        printf("starting Threads\n");
+        std::thread thr1([]() {
+            Sleep(20 * 1000);
+            printf("slept for 20 seconds\n");
+        });
+        std::thread thr3([]() {
+            Sleep(30 * 1000);
+            printf("slept for 30 seconds\n");
+        });
+        std::thread thr2([]() {
+            Sleep(10 * 1000);
+            printf("slept for 10 seconds\n");
+        });
+
+        thr1.join();
+        thr3.join();
+        thr2.join();
+    }
+
     void Initialize(Local<Object> exports)
     {
         NODE_SET_METHOD(exports, "start", start);
         NODE_SET_METHOD(exports, "testcb", run_callback);
+        NODE_SET_METHOD(exports, "testThreads", testThreads);
     }
 
     NODE_MODULE(NODE_GYP_MODULE_NAME, Initialize);
