@@ -28,7 +28,7 @@
     "minify": "^7.0.2",
     "mocha": "^9.0.3",
     "spectron": "^15.0.0",
-    "uglify-js": "^3.14.1"
+    "uglify-js": "^3.14.4"
   },
   "testEnvironment": "node",
   "dependencies": {
