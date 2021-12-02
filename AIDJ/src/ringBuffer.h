@@ -4,7 +4,7 @@
 #include <string.h>
 // This class implements a ring buffer for holding wave data
 
-class ringBuffer {
+class RingBuffer {
 
     private:
         char* m_buffer;
@@ -19,7 +19,7 @@ class ringBuffer {
 
     public:
     // Params are Number of Chunks and Chunks in seconds
-        ringBuffer(int numChunks, int chunk_in_secs)
+        RingBuffer(int numChunks, int chunk_in_secs)
         {
             // constructor
 
@@ -39,7 +39,7 @@ class ringBuffer {
         }
  
         
-        ~ringBuffer();
+        ~RingBuffer();
         // Returns the position of the head in chunks
         uint32_t head();
         // Returns the position of the tail in chunks

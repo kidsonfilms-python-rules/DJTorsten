@@ -1,39 +1,37 @@
-#include "ringBuffer.h"
+#include "RingBuffer.h"
 
-ringBuffer::~ringBuffer()
+RingBuffer::~RingBuffer()
 {
     delete (m_buffer);
 }
 
-uint32_t ringBuffer::head()
+uint32_t RingBuffer::head()
 {
     return m_head;
 }
 
-uint32_t ringBuffer::tail()
+uint32_t RingBuffer::tail()
 {
     return m_tail;
 }
 
-uint32_t ringBuffer::size()
+uint32_t RingBuffer::size()
 {
     return m_size;
 }
 
-int ringBuffer::rawSize(int chunks)
+int RingBuffer::rawSize(int chunks)
 {
     return m_chunkSize * chunks;
 }
 
 // Copies one chunk to Ring Buffer. Returns true when copy succeeds, false when copy fails.
-bool ringBuffer::writeChunk(void *sourcePtr, int numberOfChunks)
+bool RingBuffer::writeChunk(void *sourcePtr, int numberOfChunks)
 {
     if (getValidChunks() < (m_size - numberOfChunks))
     {
-        printf("----------------START WRITE----------------\nStarting HEAD: %d\n", m_head);
         memcpy((void *)(m_buffer + m_head*m_chunkSize), sourcePtr, (size_t)(m_chunkSize*numberOfChunks));
         m_head = (m_head + numberOfChunks) % m_size;
-        printf("Ending HEAD: %d\n-----------------END WRITE-----------------\n", m_head);
         return true;
     }
     return false;
@@ -41,7 +39,7 @@ bool ringBuffer::writeChunk(void *sourcePtr, int numberOfChunks)
 
 // Read 1 chunk of data from tail.
 // It doesnt copy memory, just return the tail pointer and update tail
-int ringBuffer::getValidChunks()
+int RingBuffer::getValidChunks()
 {
     // if head==tail, means there is not enough data
     int delta;
@@ -54,13 +52,13 @@ int ringBuffer::getValidChunks()
         delta = (m_size - m_tail) + m_head;
     }
 
-    return delta;
+    return delta + 1;
 }
 
 // Returns next valid chunk pointer. If there is no valid chunks, it will return NULL pointer. Can pass number of chunks.
-char *ringBuffer::readChunk(int numChunks)
+char *RingBuffer::readChunk(int numChunks)
 {
-    if (getValidChunks() > numChunks + 1)
+    if (getValidChunks() > numChunks)
     {
         // update tail
         char * ptr = (m_buffer + (m_tail * m_chunkSize));
@@ -69,7 +67,7 @@ char *ringBuffer::readChunk(int numChunks)
     }
     else
     {
-        printf("READ ERROR RINGBUFFER");
+        // printf("%d\n", getValidChunks());
         return (NULL);
     }
 }

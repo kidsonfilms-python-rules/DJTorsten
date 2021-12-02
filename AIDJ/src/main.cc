@@ -1,15 +1,16 @@
 #include <node.h>
 #include <thread>
+#include <list>
 
-#ifdef WINDOWS_OS
+// #ifdef WINDOWS_OS
 #include <iostream>
 #include <fstream>
 #include <windows.h>
 #include <mmsystem.h>
 #include <stdio.h>
-#endif
+// #endif
 
-#include "ringBuffer.h"
+#include "RingBuffer.h"
 
 namespace djflame_aidj
 {
@@ -24,7 +25,7 @@ namespace djflame_aidj
     using v8::String;
     using v8::Value;
 
-    void start(const FunctionCallbackInfo<Value> &args)
+    void startdep(const FunctionCallbackInfo<Value> &args)
     {
         // int sizeBytes = 1024 * 1024;
         // unsigned char *data = new unsigned char[sizeBytes];
@@ -43,7 +44,7 @@ namespace djflame_aidj
         file.seekg(0, std::ios::beg);
 
         // test ring buffer
-        ringBuffer r0(204, 1);
+        RingBuffer r0(204, 1);
         printf("'hi 1'\n");
 
         std::vector<char> buffer(size);
@@ -114,6 +115,98 @@ namespace djflame_aidj
         dcb->Call(context, Null(isolate), argc, argv).ToLocalChecked();
     }
 
+    void start(const FunctionCallbackInfo<Value> &args)
+    {
+        // ----------------------------------------
+        //                  PREPARE
+        // ----------------------------------------
+
+        // Create and Allocate Ring Buffer
+        RingBuffer buffer(350, 1);
+
+        // Prepare Song Library
+        std::string library[] = {"C:\\Users\\Siddharth Ray\\Downloads\\A Good Song Never Dies.wav"};
+
+        // Prepare Node Addon API
+        Isolate *isolate = args.GetIsolate();
+        Local<Context> context = isolate->GetCurrentContext();
+        Local<Function> sendInfoCB = Local<Function>::Cast(args[0]);
+        const unsigned argc = 1;
+
+        // ----------------------------------------
+        //                WRITE THREAD
+        // ----------------------------------------
+
+        std::thread writeThread([&](){
+            std::ifstream file(library[0], std::ios::binary | std::ios::ate);
+            std::streamsize size = file.tellg();
+            file.seekg(0, std::ios::beg);
+            std::vector<char> tempbuffer(size);
+            if (!file.read(tempbuffer.data(), size))
+            {
+                /* !worked! */
+            }
+            int currentWriteChunk = 0;
+            for (int i = 0; i < size; i += buffer.rawSize(5))
+            {
+                buffer.writeChunk((void *)(tempbuffer.data() + i), 5);
+                printf("Writing Chunk %d - %d\n", currentWriteChunk, currentWriteChunk + 5);
+                currentWriteChunk += 5;
+            }
+        });
+
+        // ----------------------------------------
+        //                 PLAY THREAD
+        // ----------------------------------------
+        std::thread playThread([&](){
+            printf("Read Thread Started\n");
+            // HWAVEOUT hWaveOut = 0;
+            // WAVEFORMATEX wfx = {WAVE_FORMAT_PCM, 2, 48000, 192000, 4, 16, 0};
+
+            // auto output = waveOutOpen(&hWaveOut, WAVE_MAPPER, &wfx, 0, 0, CALLBACK_NULL);
+
+            // if (output == MMSYSERR_ALLOCATED) {
+            //     printf("1");
+            // } else if (output == MMSYSERR_BADDEVICEID) {
+            //     printf("2");
+            // } else if (output == MMSYSERR_NODRIVER) {
+            //     printf("3");
+            // } else if (output == MMSYSERR_NOMEM) {
+            //     printf("4");
+            // } else if (output == WAVERR_BADFORMAT) {
+            //     printf("5");
+            // } else if (output == WAVERR_SYNC) {
+            //     printf("6");
+            // } else if (output == NULL) {
+            //     printf("null");
+            // } else {
+            //     printf("unknown mf");
+            // }
+
+            bool shouldBePlaying = true;
+
+            while (shouldBePlaying = true)
+            {
+                printf("Attempting Read\n");
+                char * chunkData = buffer.readChunk(5);
+                if (chunkData == NULL) {
+                    // printf("Read Failed\n");
+                    Sleep(0.5);
+                } else {
+                    // WAVEHDR header = {chunkData, buffer.rawSize(5), 0, 0, 0, 1, 0, 0};
+                    // waveOutPrepareHeader(hWaveOut, &header, sizeof(WAVEHDR));
+                    // waveOutWrite(hWaveOut, &header, sizeof(WAVEHDR));
+                    printf("read worked\n");
+                }
+            }
+
+            // waveOutClose(hWaveOut);
+        });
+
+        writeThread.join();
+        playThread.join();
+    }
+
     void run_callback(const FunctionCallbackInfo<Value> &args)
     {
         Isolate *isolate = args.GetIsolate();
@@ -129,18 +222,21 @@ namespace djflame_aidj
     void testThreads(const FunctionCallbackInfo<Value> &args)
     {
         printf("starting Threads\n");
-        std::thread thr1([]() {
-            Sleep(20 * 1000);
-            printf("slept for 20 seconds\n");
-        });
-        std::thread thr3([]() {
-            Sleep(30 * 1000);
-            printf("slept for 30 seconds\n");
-        });
-        std::thread thr2([]() {
-            Sleep(10 * 1000);
-            printf("slept for 10 seconds\n");
-        });
+        std::thread thr1([]()
+                         {
+                             Sleep(20 * 1000);
+                             printf("slept for 20 seconds\n");
+                         });
+        std::thread thr3([]()
+                         {
+                             Sleep(30 * 1000);
+                             printf("slept for 30 seconds\n");
+                         });
+        std::thread thr2([]()
+                         {
+                             Sleep(10 * 1000);
+                             printf("slept for 10 seconds\n");
+                         });
 
         thr1.join();
         thr3.join();

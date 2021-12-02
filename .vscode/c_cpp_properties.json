@@ -18,7 +18,8 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "C:\\Users\\Siddharth Ray\\AppData\\Local\\node-gyp\\Cache\\14.17.2\\include\\node"
             ]
         },
         {
