@@ -1,4 +1,5 @@
 #include "RingBuffer.h"
+#include <assert.h>
 
 RingBuffer::~RingBuffer()
 {
@@ -37,8 +38,7 @@ bool RingBuffer::writeChunk(void *sourcePtr, int numberOfChunks)
     return false;
 }
 
-// Read 1 chunk of data from tail.
-// It doesnt copy memory, just return the tail pointer and update tail
+
 int RingBuffer::getValidChunks()
 {
     // if head==tail, means there is not enough data
@@ -56,13 +56,13 @@ int RingBuffer::getValidChunks()
 }
 
 // Returns next valid chunk pointer. If there is no valid chunks, it will return NULL pointer. Can pass number of chunks.
-char *RingBuffer::readChunk(int numChunks)
+// It doesnt copy memory, just return the tail pointer and update tail
+char *RingBuffer::readChunk(void)
 {
-    if (getValidChunks() > numChunks)
-    {
+    if (getValidChunks() >= 1) {
         // update tail
         char * ptr = (m_buffer + (m_tail * m_chunkSize));
-        m_tail = (m_tail + numChunks) % m_size;
+        // m_tail = 
         return ptr;
     }
     else
@@ -70,4 +70,11 @@ char *RingBuffer::readChunk(int numChunks)
         // printf("%d\n", getValidChunks());
         return (NULL);
     }
+}
+
+//update tail by n steps
+void RingBuffer::updateTail(int steps)
+{
+    assert(getValidChunks() > steps); //make sure tail is not bypassing head
+    m_tail = (m_tail + steps) % m_size;
 }

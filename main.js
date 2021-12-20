@@ -321,9 +321,10 @@ function initLogDir() {
     }
 
     var partyLogDir = path.join(logdir, 'party-' + partyID.toString() + '-logs/')
+    console.log(partyLogDir)
 
     if (!fs.existsSync(partyLogDir)) {
-        fs.mkdir(partyLogDir)
+        fs.mkdirSync(partyLogDir)
     }
 
     const user = config.get('user')
@@ -368,7 +369,7 @@ function initLogDir() {
         process.stderr.pipe(error);
     }
     if (!fs.existsSync(path.join(partyLogDir, 'crash-dumps/'))) {
-        fs.mkdir(path.join(partyLogDir, 'crash-dumps/'))
+        fs.mkdirSync(path.join(partyLogDir, 'crash-dumps/'))
     }
 
     app.setPath('crashDumps', path.join(partyLogDir, 'crash-dumps/'))
@@ -788,7 +789,8 @@ async function canaryPlay(song, songLen, index) {
                         requester: q[index].requester,
                         likes: "0"
                     },
-                    queue: queueList
+                    queue: queueList,
+                    songsLeft: q.length - index - 1
                 }
             } else {
                 data = {
@@ -820,7 +822,8 @@ async function canaryPlay(song, songLen, index) {
                             author: q[index + 4].author,
                             requester: q[index + 4].requester
                         },
-                    ]
+                    ],
+                    songsLeft: q.length - index
                 }
             }
             win.webContents.send('newExternalDisplayData', data)
@@ -898,15 +901,15 @@ async function gpStart() {
                 index = index + 1
             })
         } else {
-            if (gpPlayAfter == 0) {
-                await sleep(1000)
-            } else if (gpPlayAfter == 1) {
+            // if (gpPlayAfter == 0) {
+            //     await sleep(1000)
+            // } else if (gpPlayAfter == 1) {
                 console.log('Picking Random Song!')
                 partylog('Picking Random Song Since No Songs Left in Queue')
                 await gpMain(Math.floor(Math.random() * canary.queue.length), downloadingStatus).then(() => {
                     console.log('Song Done!')
                 })
-            }
+            // }
         }
     }
 }
@@ -1018,7 +1021,7 @@ function launchExternalDisplay() {
     if (choiceExternalDisplay) {
         partylog('Launching New External Display Window')
         var d = choiceExternalDisplay
-        var dchoice = '1'
+        var dchoice = '2'
         let displays = electron.screen.getAllDisplays()
         let externalDisplay = displays.find((display) => {
             console.log(display, ": ", display.id, "  ", d)
@@ -1035,15 +1038,18 @@ function launchExternalDisplay() {
                 nodeIntegration: true,
                 enableRemoteModule: true,
                 contextIsolation: false,
-                devTools: false
+                devTools: true
             }
         })
         win.setKiosk(true);
         win.loadFile(`${__dirname}/windows/externalDisplaysGP/externalDisplayGP${dchoice}.html`)
         win.show()
         ipcMain.on('stop', () => {
-            win.close()
-            win = null
+            if (win != null) {
+                win.setKiosk(false);
+                win.close()
+                win = null
+            }
         })
 
         ipcMain.on('requestPartyCodeExDisplay', () => {
@@ -1086,7 +1092,8 @@ ipcMain.on('newExternalDisplayDataTest', () => {
                 author: "Rick Astley",
                 requester: "DJ"
             },
-        ]
+        ],
+        songsLeft: 22
     }
     win.webContents.send('newExternalDisplayData', data)
     partylog('Sent External Display Window Test Data')

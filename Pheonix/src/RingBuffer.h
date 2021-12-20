@@ -1,3 +1,6 @@
+#ifndef __RINGBUFFER_H__
+#define __RINGBUFFER_H__
+
 #include <stdio.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -8,18 +11,13 @@ class RingBuffer {
 
     private:
         char* m_buffer;
-        uint32_t m_head, m_tail;
-        uint32_t m_size;
+        int m_head, m_tail;
+        int m_size;
         uint32_t m_chunkSize;
 
-        // audio header data
-        uint16_t m_numChannels, m_bitsPerSample;
-        uint32_t m_samplesPerSec;
-
-
     public:
-    // Params are Number of Chunks and Chunks in seconds
-        RingBuffer(int numChunks, int chunk_in_secs)
+    // Params are Number of Chunks and Chunks in bytes
+        RingBuffer(int numChunks, int chunkSize)
         {
             // constructor
 
@@ -28,11 +26,7 @@ class RingBuffer {
             m_tail = 0;
             m_size = numChunks; 
 
-            m_numChannels = 2;
-            m_bitsPerSample = 16;
-            m_samplesPerSec = 48000;
-
-            m_chunkSize = chunk_in_secs * m_numChannels * m_samplesPerSec * (m_bitsPerSample/8); 
+            // m_chunkSize = chunk_in_secs * m_numChannels * m_samplesPerSec * (m_bitsPerSample/8); 
             
             // create buffer
             m_buffer = new char[m_chunkSize * numChunks];
@@ -57,5 +51,8 @@ class RingBuffer {
         int getValidChunks();
         // Read 1 chunk of data from tail.
         // It doesnt copy memory, just return the tail pointer and update tail
-        char * readChunk(int numChunks);
+        char * readChunk(void);
+        void updateTail(int steps); // move tail by n steps
 };
+
+#endif

@@ -429,15 +429,20 @@ function gpUse() {
     document.getElementById('gpqueuediv').style = 'display: block;'
     ipcRenderer.send('gpUse', 'Start')
   } else if (gpuseval == 1) {
+    document.getElementById('useGuestPicks').value = 'USE';
+    console.log('CHANGING TO USE')
+    console.log(document.getElementById('useGuestPicks'))
+    console.log(document.getElementById('useGuestPicks').value)
     gpuseval = 0
     document.getElementById('startGuestPicks').style = 'display: none;'
     document.getElementById('gpqueuediv').style = 'display: none;'
     q = []
     ipcRenderer.send('clearQueue')
     ipcRenderer.send('stopGP')
-    document.getElementById('useGuestPicks').value = 'USE'
     document.getElementById('gpcolumn').textContent = '';
     switchButton('start')
+  } else {
+    document.getElementById('useGuestPicks').value = 'USE'
   }
 }
 function aidjUse() {

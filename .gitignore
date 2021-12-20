@@ -2,4 +2,5 @@ music
 node_modules
 dist/
 ui-debug.log
-AIDJ/src/build/
+Pheonix/src/win32/build/
+Pheonix/src/macos/build/

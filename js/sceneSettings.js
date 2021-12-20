@@ -5,7 +5,7 @@ var fs = require('fs');
 const path = require('path');
 
 const outPath = (process.platform == 'win32' || process.platform == 'linux') ? `${app.getPath('appData')}/.djflame/music/` : `${__dirname}/music/`
-var files = fs.readdir(outPath).then((files) => {
+var files = fs.readdir(outPath, (files) => {
     console.log(files)
     // const fi = files.indexOf('Rick Astley - Never Gonna Give You Up (Video).mp3');
     // if (fi > -1) {

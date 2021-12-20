@@ -2,9 +2,14 @@ var AudioContext = require("web-audio-api").AudioContext;
 var MusicTempo = require("music-tempo");
 var fs = require("fs");
 const path = require('path')
-const Speaker = require('speaker')
-const tf = require('@tensorflow/tfjs-node')
-const aidj = require('../AIDJ/src/build/Release/djflame_aidj')
+// const tf = require('@tensorflow/tfjs-node')
+var aidj;
+
+if (process.platform == "win32") {
+    aidj = require('../Pheonix/src/win32/build/Release/djflame_aidj_win32')
+} else if (process.platform == "darwin") {
+    aidj = require('../Pheonix/src/macos/build/Release/djflame_aidj_macos')
+} 
 
 const audioExts = [".mp3", ".wav"]
 const CLL = []
@@ -95,44 +100,6 @@ function getAudioTempo(filepath) {
     })
 }
 
-function play(url, time) {
-    var data = fs.readFileSync(url)
-
-    var context = new AudioContext();
-    context.outStream =
-        context.decodeAudioData(data, onDecoded)
-    var startTime = 0;
-
-    context.outStream = new Speaker({
-        channels: context.format.numberOfChannels,
-        bitDepth: context.format.bitDepth,
-        sampleRate: context.sampleRate
-    })
-
-    function onDecoded(buffer) {
-        console.log('Playing ' + url + ' for ' + time + 's')
-        console.log('Song length: ' + Math.round(buffer.duration) + 's')
-        var source = context.createBufferSource();
-        source.buffer = buffer;
-        const volume = context.createGain()
-        volume.gain.value = 1
-        volume.connect(context.destination)
-        source.connect(volume);
-
-        source.start(startTime);
-
-        sleep(time * 1000, () => {
-            volume.gain.linearRampToValueAtTime(0, context.currentTime + 5)
-            source.stop(startTime + time + 6)
-            sleep(6000, () => {
-                source.disconnect()
-                volume.disconnect()
-                console.log('Sources Disconnected')
-            })
-        })
-    }
-}
-
 async function genSpectrogram(url) {
     var data = fs.readFileSync(url)
 
@@ -145,19 +112,14 @@ async function genSpectrogram(url) {
     }
 }
 
-async function loadModel() {
-    const model = await tf.loadLayersModel('file://../AIDJ/WUP/tfjs_files/model.json')
-    
-    model.predict()
-}
 
 // loadSongtoLibrary('/Users/siddharth/Downloads/Pop & Mainstream/')
 // play('/Users/siddharth/Downloads/Pop & Mainstream/DJ Prashant, Jireh - Tumbiton.mp3', 17)
 // genSpectrogram('/Users/siddharth/Downloads/Pop & Mainstream/DJ Prashant, Jireh - Tumbiton.mp3')
 // loadModel()
 // console.log(aidj.start())
-// aidj.start((msg) => {
-//     console.log(msg);
-//     console.log("CALLBACK TRIGGERED")
-//   });
-aidj.testThreads()
+aidj.start((msg) => {
+    console.log(msg);
+    console.log("CALLBACK TRIGGERED")
+  });
+// aidj.testThreads()

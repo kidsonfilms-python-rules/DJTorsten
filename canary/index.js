@@ -84,7 +84,7 @@ exports.default = class Canary {
                     details: `Playing ${song.title}`,
                     state: `Song ${parseInt(index) + 1}/${this.queue.length}`,
                     assets: {
-                        large_image: 'test',
+                        large_image: 'gp_icon',
                         large_text: 'Guest Picks',
                         small_image: 'djflame_logo',
                         small_text: 'DJFlame',

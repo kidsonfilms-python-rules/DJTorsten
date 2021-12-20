@@ -1,0 +1,488 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DJFlame | External Display</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            color: white;
+            /* background: url("https://northeastchamber.org/wp-content/uploads/2021/06/fireworks.jpeg"); */
+            background: url("https://c.tenor.com/a-Kp9r9Vb3sAAAAC/dance.gif");
+            /* background: url("https://www.rswarrior.com/attachments/251268/"); */
+            background-repeat: no-repeat;
+            background-size: cover;
+            font-family: 'Poppins';
+            /* text-transform: lowercase; */
+        }
+
+        .upperRow {
+            /* background-color: coral; */
+            align-items: center;
+            flex-direction: row;
+            display: flex;
+            -ms-flex-align: center;
+            justify-content: center;
+            overflow-y: hidden;
+            max-height: 25vh;
+        }
+
+        .time {
+            background: rgba(196, 196, 196, 0.2);
+            backdrop-filter: blur(22px);
+            /* Note: backdrop-filter has minimal browser support */
+
+            border-radius: 20px;
+            padding: 20px;
+            width: max-content;
+        }
+
+        .time p {
+            margin: 0;
+            letter-spacing: 0.2em;
+        }
+
+        .timeContainer {
+            flex: 1;
+            padding-left: 40px;
+            /* background-color: darkcyan; */
+        }
+
+        .queue {
+            flex: 1;
+            margin: 40px;
+
+            background: rgba(196, 196, 196, 0.2);
+            backdrop-filter: blur(22px);
+            /* Note: backdrop-filter has minimal browser support */
+
+            border-radius: 20px;
+            padding-left: 20px;
+
+            position: absolute;
+            right: 10;
+            top: 0;
+            min-width: 20vw;
+            max-width: 25vw;
+        }
+
+        .queueReplacement {
+            flex: 1;
+            /* background-color: coral; */
+            width: 20px;
+        }
+
+        .queue h4 {
+            margin-top: 5px;
+            margin-bottom: 10px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            font-size: 20px;
+        }
+
+        .queueSong {
+            margin-bottom: 10px;
+        }
+
+        .queueSong p {
+            margin: 0;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            overflow: hidden;
+            -webkit-line-clamp: 2;
+            /* number of lines to show */
+            -webkit-box-orient: vertical;
+        }
+
+        .queueSongTitle {
+            font-weight: 600;
+        }
+
+        .queueSongArtist {
+            font-weight: 300;
+        }
+
+        .title {
+            flex: 1;
+            text-align: center;
+            margin: 40px;
+            /* background-color: cadetblue; */
+        }
+
+        .midRow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .lowerRow {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            bottom: 0;
+            width: 100vw;
+            margin: 0;
+        }
+
+        .songCard {
+            background: rgba(196, 196, 196, 0.2);
+            /* background-color: cornflowerblue; */
+            backdrop-filter: blur(20px);
+            margin: 20px;
+            width: max-content;
+            min-width: 500px;
+            /* Note: backdrop-filter has minimal browser support */
+
+            border-radius: 40px;
+
+            font-weight: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .songCard h1 {
+            font-weight: 100;
+            margin-bottom: 10px;
+            max-width: 30vw;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            overflow: hidden;
+            -webkit-line-clamp: 2;
+            /* number of lines to show */
+            -webkit-box-orient: vertical;
+        }
+
+        .songCard h3,
+        .songCard h4 {
+            margin: 0;
+            font-weight: 300;
+            margin-bottom: 5px;
+        }
+
+        .songCard h4 {
+            margin-bottom: 30px;
+        }
+
+        .partyDetails {
+            width: max-content;
+            background: rgba(196, 196, 196, 0.2);
+            backdrop-filter: blur(20px);
+            /* Note: backdrop-filter has minimal browser support */
+
+            border-radius: 20px;
+            padding-left: 30px;
+            padding-right: 40px;
+            margin-bottom: 20px;
+        }
+
+        .waitingForData {
+            position: absolute;
+            z-index: 1000;
+            background-color: #1b1b1b;
+            height: 100vh;
+            width: 100vw;
+            top: 0;
+        }
+
+        .page {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 95%;
+            width: 100%;
+            /* border: 2px dashed #f69c55; */
+        }
+
+        .center {
+            display: table-cell;
+            vertical-align: middle;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .center h1 {
+            color: rgb(226, 226, 226);
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            font-size: 40px;
+            z-index: 1000;
+            text-align: center;
+        }
+
+        .center p {
+            text-align: center;
+        }
+
+        .center input {
+            width: 100%;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus,
+        button:focus {
+            outline: none;
+        }
+
+        .center .text {
+            width: 100%;
+            margin-bottom: 10px;
+            background-color: rgb(24, 24, 24);
+            border-radius: 100px;
+            padding: 10px;
+            border-style: solid;
+            color: rgb(226, 226, 226);
+        }
+
+        .center h2 {
+            color: rgb(226, 226, 226);
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            font-size: 20px;
+            text-align: center;
+        }
+
+        .loader {
+            height: 100px;
+            width: 20%;
+            text-align: center;
+            padding: 0.5em;
+            display: inline-block;
+            vertical-align: top;
+        }
+
+        .loader svg path,
+        svg rect {
+            fill: #df49a6;
+        }
+
+        .noSong {
+            font-weight: 200;
+            font-style: italic;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="upperRow">
+        <div class="timeContainer">
+            <div class="time">
+                <p id="time">11:45:30 pm</p>
+                <!-- <p id="timeMidnight">14:30 left</p> -->
+            </div>
+        </div>
+        <!-- <h1 class="title">start your year<br>hyped</h1> -->
+        <h1 class="title">happy holidays <br><span style="font-style: italic;font-weight:200;">from the Choudri family</span></h1>
+        <div class="queueReplacement"></div>
+        <div class="queue">
+            <h4>queue</h4>
+            <div id="queueList">
+                <div class="queueSong">
+                    <p class="queueSongTitle">Never Gonna Give You Up</p>
+                    <p class="queueSongArtist">Rick Astley | requested by DJ</p>
+                </div>
+                <div class="queueSong">
+                    <p class="queueSongTitle">Never Gonna Give You Up</p>
+                    <p class="queueSongArtist">Rick Astley | requested by DJ</p>
+                </div>
+                <div class="queueSong">
+                    <p class="queueSongTitle">Never Gonna Give You Up</p>
+                    <p class="queueSongArtist">Rick Astley | requested by DJ</p>
+                </div>
+            </div>
+            <p style="margin-bottom: 0; font-weight: 300; font-style: italic;"><span id="songsLeft">--</span> songs in queue</p>
+        </div>
+    </div>
+    <div class="midRow">
+        <div class="songCard">
+            <img id="thumbnail" src="https://i.ytimg.com/vi/Sk-U8ruIQyA/maxresdefault.jpg" alt="thumbnail"
+                height="150px" style="margin-top: 20px; border-radius: 20px;">
+            <h1 id="npTitle">blood // water</h1>
+            <h3 id="npAuthor">grandson</h3>
+            <h4 id="npRequester">requested by DJ</h4>
+        </div>
+    </div>
+    <div class="lowerRow">
+        <div class="partyDetails">
+            <h3 style="font-weight: 300;">join the party using the djflame mobile app<br>party code <span
+                    style="font-weight: 700;" id="partyCode"></span></h3>
+        </div>
+    </div>
+
+    <!-- <div class="waitingForData">
+        <div class="page">
+            <div class="center">
+                <div class="loader loader--style8" title="7">
+                    <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
+                        xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="50%" viewBox="0 0 20 30"
+                        style="enable-background:new 0 0 50 50;" xml:space="preserve">
+                        <rect x="0" y="10" width="4" height="10" fill="#333" opacity="0.2">
+                            <animate attributeName="opacity" attributeType="XML" values="0.2; 1; .2" begin="0s" dur="0.6s"
+                                repeatCount="indefinite" />
+                            <animate attributeName="height" attributeType="XML" values="10; 20; 10" begin="0s" dur="0.6s"
+                                repeatCount="indefinite" />
+                            <animate attributeName="y" attributeType="XML" values="10; 5; 10" begin="0s" dur="0.6s"
+                                repeatCount="indefinite" />
+                        </rect>
+                        <rect x="8" y="10" width="4" height="10" fill="#333" opacity="0.2">
+                            <animate attributeName="opacity" attributeType="XML" values="0.2; 1; .2" begin="0.15s"
+                                dur="0.6s" repeatCount="indefinite" />
+                            <animate attributeName="height" attributeType="XML" values="10; 20; 10" begin="0.15s" dur="0.6s"
+                                repeatCount="indefinite" />
+                            <animate attributeName="y" attributeType="XML" values="10; 5; 10" begin="0.15s" dur="0.6s"
+                                repeatCount="indefinite" />
+                        </rect>
+                        <rect x="16" y="10" width="4" height="10" fill="#333" opacity="0.2">
+                            <animate attributeName="opacity" attributeType="XML" values="0.2; 1; .2" begin="0.3s" dur="0.6s"
+                                repeatCount="indefinite" />
+                            <animate attributeName="height" attributeType="XML" values="10; 20; 10" begin="0.3s" dur="0.6s"
+                                repeatCount="indefinite" />
+                            <animate attributeName="y" attributeType="XML" values="10; 5; 10" begin="0.3s" dur="0.6s"
+                                repeatCount="indefinite" />
+                        </rect>
+                    </svg>
+                </div>
+                <h1>Guest Picks will Start Soon!</h1>
+                <h2>Get Ready to Get Your Party On!<br>New Years Edition</h2>
+            </div>
+        </div>
+    </div> -->
+
+
+    <script>
+        const electron = require('electron')
+        const remote = electron.remote;
+        const ipcRenderer = electron.ipcRenderer;
+        const thisWindow = remote.getCurrentWindow()
+        const waitingForData = document.querySelector('.waitingForData')
+
+        var npImg = document.getElementById('thumbnail')
+        var npAuthor = document.getElementById('npAuthor')
+        var npRequester = document.getElementById('npRequester')
+        var npTitle = document.getElementById('npTitle')
+
+        ipcRenderer.send('requestPartyCodeExDisplay')
+        ipcRenderer.on('requestedPartyCode', (err, code) => {
+            console.log(code)
+            document.getElementById('partyCode').innerText = code
+        })
+        ipcRenderer.on('newExternalDisplayData', (e, d) => {
+            console.log("New Data: \n", d)
+            // waitingForData.style.display = 'none'
+
+            npImg.src = d.nowPlaying.thumbnail
+            npAuthor.innerText = d.nowPlaying.author
+            npRequester.innerText = `requested by ${d.nowPlaying.requester}`
+            npTitle.innerText = d.nowPlaying.title
+
+            const queueDiv = document.getElementById("queueList")
+            queueDiv.innerHTML = ""
+
+            if (d.queue.length == 0) {
+                var noSH6 = document.createElement('p')
+                noSH6.className = "noSong"
+                var noSI = document.createElement('i')
+                noSI.innerText = 'no songs in queue'
+                noSH6.appendChild(noSI)
+                queueDiv.appendChild(noSH6)
+            }
+
+            if (d.queue.length > 3) {
+                d.queue.pop()
+            }
+
+            d.queue.forEach((data) => {
+                var songDiv = document.createElement('div')
+                songDiv.className = 'queueSong'
+
+                var songTitle = document.createElement('p')
+                songTitle.innerText = data.title
+                songTitle.className = 'queueSongTitle'
+
+                var songSubheading = document.createElement('p')
+                songSubheading.innerText = `${data.author} | requested by ${data.requester}`
+                songSubheading.className = "queueSongArtist"
+
+                songDiv.appendChild(songTitle)
+                songDiv.appendChild(songSubheading)
+                queueDiv.appendChild(songDiv)
+            })
+
+            songsLeft = document.getElementById("songsLeft");
+            songsLeft.innerHTML = d.songsLeft;
+        });
+
+        var midnight = new Date();
+        midnight.setHours(24);
+        midnight.setMinutes(0);
+        midnight.setSeconds(0);
+        midnight.setMilliseconds(0);
+
+        function toHHMMSS(secs) {
+            var sec_num = parseInt(secs, 10) + 1
+            var hours;
+            var minutes;
+            var seconds;
+            if (sec_num < 0) {
+                hours = 0
+                minutes = 0
+                seconds = 0
+            } else {
+                hours = Math.floor(sec_num / 3600)
+                minutes = Math.floor(sec_num / 60) % 60
+                seconds = sec_num % 60
+            }
+
+            return [hours, minutes, seconds]
+                .map(v => v < 10 ? "0" + v : v)
+                .filter((v, i) => v !== "00" || i > 0)
+                .join(":")
+        }
+
+        function startTime() {
+            var today = new Date();
+            var h = today.getHours();
+            var m = today.getMinutes();
+            var s = today.getSeconds();
+            var ampm = h >= 12 ? 'pm' : 'am';
+            h = h % 12;
+            h = h ? h : 12; // the hour '0' should be '12'
+            m = checkTime(m);
+            s = checkTime(s);
+
+            var timedoc = document.getElementById("time")
+            timedoc.innerHTML = h + ":" + m + ":" + s + " " + ampm;
+
+            // document.getElementById("timeMidnight").innerHTML = toHHMMSS((midnight.getTime() - today.getTime()) / 1000) + ' left'
+
+            var t = setTimeout(startTime, 500);
+        }
+
+        function checkTime(i) {
+            if (i < 10) {
+                i = "0" + i;
+            }
+            return i;
+        }
+        setInterval(() => {
+            //empty
+        }, 1);
+        startTime()
+    </script>
+</body>
+
+</html>
