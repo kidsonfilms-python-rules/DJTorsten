@@ -85,7 +85,7 @@
             margin-bottom: 10px;
             font-weight: 600;
             letter-spacing: 0.05em;
-            font-size: 20px;
+            font-size: 1.042vw;
         }
 
         .queueSong {
@@ -216,7 +216,7 @@
             color: rgb(226, 226, 226);
             text-transform: uppercase;
             letter-spacing: 5px;
-            font-size: 40px;
+            font-size: 2.083vw;
             z-index: 1000;
             text-align: center;
         }
@@ -250,7 +250,7 @@
             color: rgb(226, 226, 226);
             text-transform: uppercase;
             letter-spacing: 5px;
-            font-size: 20px;
+            font-size: 1.042vw;
             text-align: center;
         }
 
@@ -282,26 +282,25 @@
         <div class="timeContainer">
             <div class="time">
                 <p id="time">11:45:30 pm</p>
-                <!-- <p id="timeMidnight">14:30 left</p> -->
+                <p id="timeMidnight">14:30 left</p>
             </div>
         </div>
-        <!-- <h1 class="title">start your year<br>hyped</h1> -->
-        <h1 class="title">happy holidays <br><span style="font-style: italic;font-weight:200;">from the Choudri family</span></h1>
+        <h1 class="title">start your year<br>hyped</h1>
         <div class="queueReplacement"></div>
         <div class="queue">
             <h4>queue</h4>
             <div id="queueList">
                 <div class="queueSong">
-                    <p class="queueSongTitle">Never Gonna Give You Up</p>
-                    <p class="queueSongArtist">Rick Astley | requested by DJ</p>
+                    <p class="queueSongTitle">--</p>
+                    <p class="queueSongArtist">--</p>
                 </div>
                 <div class="queueSong">
-                    <p class="queueSongTitle">Never Gonna Give You Up</p>
-                    <p class="queueSongArtist">Rick Astley | requested by DJ</p>
+                    <p class="queueSongTitle">--</p>
+                    <p class="queueSongArtist">--</p>
                 </div>
                 <div class="queueSong">
-                    <p class="queueSongTitle">Never Gonna Give You Up</p>
-                    <p class="queueSongArtist">Rick Astley | requested by DJ</p>
+                    <p class="queueSongTitle">--</p>
+                    <p class="queueSongArtist">--</p>
                 </div>
             </div>
             <p style="margin-bottom: 0; font-weight: 300; font-style: italic;"><span id="songsLeft">--</span> songs in queue</p>
@@ -311,9 +310,9 @@
         <div class="songCard">
             <img id="thumbnail" src="https://i.ytimg.com/vi/Sk-U8ruIQyA/maxresdefault.jpg" alt="thumbnail"
                 height="150px" style="margin-top: 20px; border-radius: 20px;">
-            <h1 id="npTitle">blood // water</h1>
-            <h3 id="npAuthor">grandson</h3>
-            <h4 id="npRequester">requested by DJ</h4>
+            <h1 id="npTitle">--</h1>
+            <h3 id="npAuthor">--</h3>
+            <h4 id="npRequester">requested by --</h4>
         </div>
     </div>
     <div class="lowerRow">
@@ -323,7 +322,7 @@
         </div>
     </div>
 
-    <!-- <div class="waitingForData">
+    <div class="waitingForData">
         <div class="page">
             <div class="center">
                 <div class="loader loader--style8" title="7">
@@ -360,7 +359,7 @@
                 <h2>Get Ready to Get Your Party On!<br>New Years Edition</h2>
             </div>
         </div>
-    </div> -->
+    </div>
 
 
     <script>
@@ -382,7 +381,7 @@
         })
         ipcRenderer.on('newExternalDisplayData', (e, d) => {
             console.log("New Data: \n", d)
-            // waitingForData.style.display = 'none'
+            waitingForData.style.display = 'none'
 
             npImg.src = d.nowPlaying.thumbnail
             npAuthor.innerText = d.nowPlaying.author
@@ -467,7 +466,7 @@
             var timedoc = document.getElementById("time")
             timedoc.innerHTML = h + ":" + m + ":" + s + " " + ampm;
 
-            // document.getElementById("timeMidnight").innerHTML = toHHMMSS((midnight.getTime() - today.getTime()) / 1000) + ' left'
+            document.getElementById("timeMidnight").innerHTML = toHHMMSS((midnight.getTime() - today.getTime()) / 1000) + ' left'
 
             var t = setTimeout(startTime, 500);
         }

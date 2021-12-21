@@ -81,6 +81,10 @@ app.whenReady().then(async () => {
     await createWindow()
     await createCanaryWindow()
 
+    if (process.platform == "win32") {
+        electron.Menu.setApplicationMenu(null)
+    }
+
     canaryWindow.webContents.on('did-finish-load', function () {
         console.log('[CANARY] Loading Engine...')
         rpcClient = new rpc.Client({ transport: 'ipc' });
@@ -317,7 +321,7 @@ function initLogDir() {
     var logdir = path.join(app.getPath('userData'), 'Party Logs/');
 
     if (!fs.existsSync(logdir)) {
-        fs.mkdir(logdir);
+        fs.mkdirSync(logdir);
     }
 
     var partyLogDir = path.join(logdir, 'party-' + partyID.toString() + '-logs/')
@@ -358,16 +362,18 @@ function initLogDir() {
             }
         }
         var partyConfigLogStr = JSON.stringify(partyConfigLog)
-        fs.writeFile(path.join(partyLogDir, 'party-config-log.json'), partyConfigLogStr, 'utf8', () => { });
+        fs.writeFileSync(path.join(partyLogDir, 'party-config-log.json'), partyConfigLogStr, 'utf8');
     }
 
     if (!fs.existsSync(path.join(partyLogDir, 'party-events.log'))) {
-        fs.writeFile(path.join(partyLogDir, 'party-events.log'), '[' + new Date().toISOString() + '] LOG START', () => { })
+        fs.writeFileSync(path.join(partyLogDir, 'party-events.log'), '[' + new Date().toISOString() + '] LOG START')
     }
-    if (!fs.existsSync(path.join(partyLogDir, 'node-errors.log'))) {
-        const error = fs.createWriteStream(partyLogDir + '/node.error.log', { flags: 'a' });
+    // if (!fs.existsSync(path.join(partyLogDir, 'node-errors.log'))) {
+    const error = fs.createWriteStream(partyLogDir + '/node.error.log', { flags: 'a' });
+    if (process.platform == "darwin") {
         process.stderr.pipe(error);
     }
+    // }
     if (!fs.existsSync(path.join(partyLogDir, 'crash-dumps/'))) {
         fs.mkdirSync(path.join(partyLogDir, 'crash-dumps/'))
     }
@@ -378,6 +384,7 @@ function initLogDir() {
 
 function partylog(message, error = false, thread = 'MAIN') {
     const log = `${error ? '\n\n----------------------ERROR THROWN----------------------' : ''}\n[${new Date().toISOString()}] [${thread}]${(error ? ' [ERROR]' : '')} ${message}${error ? '\n----------------------ERROR END----------------------\n' : ''}`
+    console.log(log.replace('\n', ''))
     fs.open(path.join(path.join(path.join(app.getPath('userData'), 'Party Logs/'), 'party-' + partyID.toString() + '-logs/'), 'party-events.log'), 'a', 666, function (e, id) {
 
         fs.write(id, log, null, 'utf8', function () {
@@ -904,11 +911,11 @@ async function gpStart() {
             // if (gpPlayAfter == 0) {
             //     await sleep(1000)
             // } else if (gpPlayAfter == 1) {
-                console.log('Picking Random Song!')
-                partylog('Picking Random Song Since No Songs Left in Queue')
-                await gpMain(Math.floor(Math.random() * canary.queue.length), downloadingStatus).then(() => {
-                    console.log('Song Done!')
-                })
+            console.log('Picking Random Song!')
+            partylog('Picking Random Song Since No Songs Left in Queue')
+            await gpMain(Math.floor(Math.random() * canary.queue.length), downloadingStatus).then(() => {
+                console.log('Song Done!')
+            })
             // }
         }
     }
@@ -1044,6 +1051,67 @@ function launchExternalDisplay() {
         win.setKiosk(true);
         win.loadFile(`${__dirname}/windows/externalDisplaysGP/externalDisplayGP${dchoice}.html`)
         win.show()
+        win.webContents.on('did-finish-load', () => {
+            const q = canary.queue
+            if (q.length - (0 + 1) < 4) {
+                var queueList = []
+                for (var i = 0 + 1; (q.length - i) > 0; i++) {
+                    queueList.push({
+                        title: q[i].title,
+                        author: q[i].author,
+                        requester: q[i].requester
+                    })
+                    console.log(queueList)
+                }
+                console.log(queueList)
+                data = {
+                    nowPlaying: {
+                        title: q[0].title,
+                        author: q[0].author,
+                        thumbnail: q[0].thumbnail.split('?')[0],
+                        requester: q[0].requester,
+                        likes: "0"
+                    },
+                    queue: queueList,
+                    songsLeft: q.length - 1
+                }
+            } else {
+                data = {
+                    nowPlaying: {
+                        title: q[0].title,
+                        author: q[0].author,
+                        thumbnail: q[0].thumbnail.split('?')[0],
+                        requester: q[0].requester,
+                        likes: "0"
+                    },
+                    queue: [
+                        {
+                            title: q[1].title,
+                            author: q[1].author,
+                            requester: q[1].requester
+                        },
+                        {
+                            title: q[2].title,
+                            author: q[2].author,
+                            requester: q[2].requester
+                        },
+                        {
+                            title: q[3].title,
+                            author: q[3].author,
+                            requester: q[3].requester
+                        },
+                        {
+                            title: q[4].title,
+                            author: q[4].author,
+                            requester: q[4].requester
+                        },
+                    ],
+                    songsLeft: q.length
+                }
+            }
+            win.webContents.send('newExternalDisplayData', data)
+        })
+
         ipcMain.on('stop', () => {
             if (win != null) {
                 win.setKiosk(false);

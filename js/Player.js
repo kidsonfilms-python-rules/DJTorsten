@@ -63,6 +63,7 @@ function play(vidID, time, index) {
         player.destroy();
         playing = false
         clearInterval(playTimeInterval)
+        clearTimeout(playerTimeout)
         ipcRenderer.send('canaryStopped', '')
     }
 

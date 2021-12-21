@@ -1,6 +1,7 @@
 const electron = require('electron')
 const ipcRenderer = electron.ipcRenderer;
 const BrowserWindow = electron.remote.BrowserWindow
+const app = electron.remote.app
 var fs = require('fs');
 const path = require('path');
 
@@ -381,26 +382,6 @@ var getHTML = function (url, callback) {
 };
 
 
-
-function shareTwitter() {
-    electron.shell.openExternal("http://twitter.com/share?text=Join My DJFlame Party! The Party Code is 053467&url=http://github.com&hashtags=djflame,party,partyatmyplace")
-}
-
-function shareFacebook() {
-    electron.shell.openExternal('http://www.facebook.com/sharer.php?u=https%3A%2F%2Fgithub.com')
-}
-
-function shareReddit() {
-    electron.shell.openExternal("http://www.reddit.com/submit?title=Join%20My%20DJFlame%20Party!&text=The%20Party%20Code%20is:%20**053467**%20or%20Use%20(this%20Link)[https://github.com]!")
-}
-
-function sharePrint() {
-    getHTML(`${__dirname}/windows/sharePrint.html`, function (response) {
-        var element = response.documentElement
-        html2pdf(element);
-    });
-}
-
 document.getElementById("clickToCopyShareURL").onclick = function () {
     this.select();
     document.execCommand('copy');
@@ -411,10 +392,37 @@ document.getElementById("clickToCopyShareURL").onclick = function () {
     }, 1000);
 }
 
+var shareTwitter, shareFacebook, shareReddit, sharePrint = () => {}
+
 ipcRenderer.send('requestPartyCode')
 ipcRenderer.on('requestedPartyCode', (err, code) => {
     document.getElementById('partyCodeText').value = code
     document.getElementById("clickToCopyShareURL").value = `https://djflame.tech/join?c=${code}`
+
+    shareTwitter = (init=false) => {
+        if (!init) electron.shell.openExternal("http://twitter.com/share?text=Join My DJFlame Party! The Party Code is "+ code +"&url=http://djflame.tech&hashtags=djflame,party,partyatmyplace")
+    }
+    
+    shareFacebook = (init=false) => {
+        if (!init) electron.shell.openExternal('http://www.facebook.com/sharer.php?u=https%3A%2F%2Fdjflame.tech')
+    }
+    
+    shareReddit = (init=false) => {
+        if (!init) electron.shell.openExternal("http://www.reddit.com/submit?title=Join%20My%20DJFlame%20Party!&text=The%20Party%20Code%20is:%20**" + code +"**%20or%20Use%20(this%20Link)[https://github.com]!")
+    }
+    
+    sharePrint = (init=false) => {
+        if (!init) getHTML(`${__dirname}/windows/sharePrint.html`, function (response) {
+            var element = response.documentElement
+            html2pdf(element);
+        });
+    }
+    
+    document.getElementById("partyCodeText").innerText = code
+    shareTwitter(true)
+    shareFacebook(true)
+    shareReddit(true)
+    sharePrint(true)
 })
 document.getElementById("clickToCopyShareURL").addEventListener('select', function () {
     this.selectionStart = this.selectionEnd;

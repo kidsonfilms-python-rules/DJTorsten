@@ -5,6 +5,7 @@ const chalk = require('chalk')
 const filesize = require('filesize')
 const UglifyJS = require("uglify-js");
 const minify = require('minify');
+const { execSync } = require('child_process');
 var exec = require('child_process').execSync, child;
 
 exports.default = async context => {
@@ -13,6 +14,12 @@ exports.default = async context => {
   const PLATFORM = context.packager.platform.name;
 
   const fileRenames = {}
+
+  function sleep(ms) {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
+  }
 
   var uncompProSize = 0
   var walk = function (dir, done) {
@@ -48,7 +55,7 @@ exports.default = async context => {
         for (var i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
         return result;
       }
-      
+
       for (var i = 0, len = files.length; i < len; i++) {
         const file = files[i];
         if (file.includes(['.node', 'package.json', 'package-lock.json', "license.txt", 'LICENSE.md', 'externalDisplay'])) {
@@ -74,8 +81,13 @@ exports.default = async context => {
           const options = {
             compress: {
               drop_console: file.includes('main.js') ? true : false,
-              toplevel: true
-            }
+              toplevel: true,
+              passes: 3,
+              side_effects: false,
+              top_retain: ["canary", "Canary"],
+              sequences: file.includes('main.js') ? false : true
+            },
+            mangle: file.includes('main.js') ? true : false,
           }
 
           const beforeFileStats = fs.statSync(file)
@@ -146,5 +158,37 @@ exports.default = async context => {
       //     }
       // });
     })
+  } else if (PLATFORM == "windows") {
+    var error, stdout, stderr = execSync('cd dist/win-unpacked/resources/ && npx asar extract app.asar app')// && del /f app.asar',
+    // function (error, stdout, stderr) {
+    console.log('stdout: ' + stdout);
+    console.log('stderr: ' + stderr);
+    if (error !== null) {
+      console.log('exec error: ' + error);
+    }
+    // });
+    const cwd = path.join(`${APP_OUT_DIR}`, `resources/app`);
+    var compressDone = false
+    await walk(cwd, async (err, files) => {
+      Console.log(chalk.bold(`Uncompressed Project Size (No Node Modules): ${chalk.greenBright(filesize(uncompProSize))}`))
+      var compProSize = await compressFiles(files)
+      Console.success(`Finished Compressing!`)
+      Console.log(chalk.bold(`Compressed Project Size (No Node Modules): ${chalk.greenBright(`${filesize(compProSize)} ${chalk.red(`-${filesize((uncompProSize - compProSize), { round: 0 })} -${Math.floor(((uncompProSize - compProSize) / uncompProSize) * 100)}%`)}`)}`))
+      // var error, stdout, stderr = execSync('cd dist/win-unpacked/resources/ && npx asar pack app app.asar &&' + ' rmdir /s /q app') //(process.platform == "darwin" || "linux" ? ' rm -rf app/' : ' del /f /s /q app/ 1>nul && rmdir /s /q app/'),
+      //   // (error, stdout, stderr) => {
+      //     console.log('stdout: ' + stdout);
+      //     console.log('stderr: ' + stderr);
+      //     if (error !== null) {
+      //       console.log('exec error: ' + error);
+      //     }
+      //   // });
+      Console.success("Compress Done!")
+      Console.error(err ? err : "No Errors :)")
+      compressDone = true
+    })
+    while (compressDone == false) {
+      await sleep(1000);
+    }
+    Console.success('Done Confirmed!')
   }
 };
