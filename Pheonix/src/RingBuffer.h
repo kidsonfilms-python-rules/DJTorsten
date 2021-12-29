@@ -5,13 +5,14 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
+#include <atomic>
 // This class implements a ring buffer for holding wave data
 
 class RingBuffer {
 
     private:
         char* m_buffer;
-        int m_head, m_tail;
+        std::atomic_int m_head, m_tail;
         int m_size;
         uint32_t m_chunkSize;
 
@@ -22,12 +23,13 @@ class RingBuffer {
             // constructor
 
             // Head, tail and size is in # of chunks
-            m_head = 0;
-            m_tail = 0;
+            m_head.store(0, std::memory_order_release);
+            m_tail.store(0, std::memory_order_release);
             m_size = numChunks; 
+            m_chunkSize = chunkSize;
 
             // m_chunkSize = chunk_in_secs * m_numChannels * m_samplesPerSec * (m_bitsPerSample/8); 
-            
+            printf ("ring buffer allcator: %d, %d \n", m_chunkSize, numChunks);
             // create buffer
             m_buffer = new char[m_chunkSize * numChunks];
         }
@@ -49,8 +51,11 @@ class RingBuffer {
         bool writeChunk(void* sourcePtr, int numberOfChunks);
         // Get valid chunks that can be read safely.
         int getValidChunks();
-        // Read 1 chunk of data from tail.
-        // It doesnt copy memory, just return the tail pointer and update tail
+        
+        // returns number of free chunks
+        int numFreeChunks();
+
+        // It doesnt copy memory, just return the tail pointer
         char * readChunk(void);
         void updateTail(int steps); // move tail by n steps
 };

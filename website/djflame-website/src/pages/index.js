@@ -1,0 +1,7 @@
+export {default as HomePage} from './homepage'
+export {default as TermsPage} from './terms'
+export {default as PrivacyPage} from './privacy'
+export {default as AboutPage} from './about'
+export {default as PressPage} from './press'
+export {default as DownloadPage} from './download'
+export {default as NotFoundPage} from './404'

@@ -4,3 +4,4 @@ dist/
 ui-debug.log
 Pheonix/src/win32/build/
 Pheonix/src/macos/build/
+.env

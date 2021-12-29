@@ -1,0 +1,3 @@
+planner  class is first thread. It writes to the "ThePlan" class based on user ingputs
+chunkWriter is second thread. It reads the plan, open the file, copies to ring buffer 
+another thread to enquue in to the audioplayer class (1 chunk at a time?)

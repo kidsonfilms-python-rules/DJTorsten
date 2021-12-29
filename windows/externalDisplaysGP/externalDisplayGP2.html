@@ -152,6 +152,18 @@
             align-items: center;
         }
 
+        .upperRow .songCard img {
+            display: none;
+        }
+
+        .upperRow .songCard h1 {
+            margin-top: 5px;
+            margin-bottom: 10px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            font-size: 1.042vw;
+        }
+
         .songCard h1 {
             font-weight: 100;
             margin-bottom: 10px;
@@ -303,7 +315,8 @@
                     <p class="queueSongArtist">--</p>
                 </div>
             </div>
-            <p style="margin-bottom: 0; font-weight: 300; font-style: italic;"><span id="songsLeft">--</span> songs in queue</p>
+            <p style="margin-bottom: 0; font-weight: 300; font-style: italic;"><span id="songsLeft">--</span> songs in
+                queue</p>
         </div>
     </div>
     <div class="midRow">
@@ -330,26 +343,26 @@
                         xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="50%" viewBox="0 0 20 30"
                         style="enable-background:new 0 0 50 50;" xml:space="preserve">
                         <rect x="0" y="10" width="4" height="10" fill="#333" opacity="0.2">
-                            <animate attributeName="opacity" attributeType="XML" values="0.2; 1; .2" begin="0s" dur="0.6s"
-                                repeatCount="indefinite" />
-                            <animate attributeName="height" attributeType="XML" values="10; 20; 10" begin="0s" dur="0.6s"
-                                repeatCount="indefinite" />
+                            <animate attributeName="opacity" attributeType="XML" values="0.2; 1; .2" begin="0s"
+                                dur="0.6s" repeatCount="indefinite" />
+                            <animate attributeName="height" attributeType="XML" values="10; 20; 10" begin="0s"
+                                dur="0.6s" repeatCount="indefinite" />
                             <animate attributeName="y" attributeType="XML" values="10; 5; 10" begin="0s" dur="0.6s"
                                 repeatCount="indefinite" />
                         </rect>
                         <rect x="8" y="10" width="4" height="10" fill="#333" opacity="0.2">
                             <animate attributeName="opacity" attributeType="XML" values="0.2; 1; .2" begin="0.15s"
                                 dur="0.6s" repeatCount="indefinite" />
-                            <animate attributeName="height" attributeType="XML" values="10; 20; 10" begin="0.15s" dur="0.6s"
-                                repeatCount="indefinite" />
+                            <animate attributeName="height" attributeType="XML" values="10; 20; 10" begin="0.15s"
+                                dur="0.6s" repeatCount="indefinite" />
                             <animate attributeName="y" attributeType="XML" values="10; 5; 10" begin="0.15s" dur="0.6s"
                                 repeatCount="indefinite" />
                         </rect>
                         <rect x="16" y="10" width="4" height="10" fill="#333" opacity="0.2">
-                            <animate attributeName="opacity" attributeType="XML" values="0.2; 1; .2" begin="0.3s" dur="0.6s"
-                                repeatCount="indefinite" />
-                            <animate attributeName="height" attributeType="XML" values="10; 20; 10" begin="0.3s" dur="0.6s"
-                                repeatCount="indefinite" />
+                            <animate attributeName="opacity" attributeType="XML" values="0.2; 1; .2" begin="0.3s"
+                                dur="0.6s" repeatCount="indefinite" />
+                            <animate attributeName="height" attributeType="XML" values="10; 20; 10" begin="0.3s"
+                                dur="0.6s" repeatCount="indefinite" />
                             <animate attributeName="y" attributeType="XML" values="10; 5; 10" begin="0.3s" dur="0.6s"
                                 repeatCount="indefinite" />
                         </rect>
@@ -361,7 +374,7 @@
         </div>
     </div>
 
-
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <script>
         const electron = require('electron')
         const remote = electron.remote;
@@ -481,6 +494,26 @@
             //empty
         }, 1);
         startTime()
+
+        $(document).ready(function() {
+            $.fn.animatePrependTo = function (sel, speed) {
+            var $this = this,
+                newEle = $this.clone(true).prependTo(sel),
+                newPos = newEle.position();
+            newEle.hide();
+            $this.css('position', $this.position()).animate(newPos, speed, function () {
+                newEle.show();
+                $this.remove();
+            });
+            return newEle;
+        };
+
+        $('.timeContainer').on("click", function () {
+            var tmp = $('.timeContainer').parent();
+            $('.timeContainer').animatePrependTo($(".songCard").parent(), 2000);
+            $('.songCard').animatePrependTo(tmp, 2000);
+        });
+    })
     </script>
 </body>
 

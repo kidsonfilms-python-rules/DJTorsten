@@ -4,6 +4,7 @@ var electron_notarize = require('electron-notarize');
 const config = require('../package.json')
 const Console = require('Console')
 const chalk = require('chalk')
+require('dotenv').config()
 module.exports = async function (params) {
   // Only notarize the app on Mac OS only.  
   if (process.platform !== 'darwin' || path.join(params.appOutDir, `${params.packager.appInfo.productFilename}.app`) == '/Users/siddharth/dev/DJTorsten/dist/win-unpacked/DJFlame.app') {
@@ -17,6 +18,7 @@ module.exports = async function (params) {
   }
   const startNoteTime = new Date()
   Console.log(chalk.bold(`Notarizing ${appId} found at ${appPath}. Started Notarizing at ${new Date().toLocaleTimeString()}, expected max finish time ${new Date(new Date().getTime() + 350*1000).toLocaleTimeString()}`));
+  Console.warn(`Using ${process.env.APPLE_ID} and [CONFIDENTIAL] ${process.env.APPLE_ID_PASSWORD} to authenticate.`)
   try {
     await electron_notarize.notarize({
       appBundleId: appId,
