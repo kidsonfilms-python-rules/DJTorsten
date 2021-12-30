@@ -2,6 +2,13 @@
   "hosting": {
     "public": "website",
     "cleanUrls": true,
+    "appAssociation": "AUTO",
+    "rewrites": [
+      {
+        "source": "/join/**",
+        "dynamicLinks": true
+      }
+    ],
     "ignore": [
       "firebase.json",
       "**/.*",
