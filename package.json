@@ -37,7 +37,7 @@
     "discord-rpc": "^4.0.1",
     "electron-store": "^8.0.1",
     "electron-updater": "^4.6.1",
-    "firebase": "^8.9.1",
+    "firebase": "^9.6.5",
     "get-audio-duration": "^3.0.0",
     "jquery": "^3.6.0",
     "music-tempo": "^1.0.3",
