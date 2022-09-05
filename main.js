@@ -799,6 +799,7 @@ async function canaryPlay(song, songLen, index) {
                         requester: q[index].requester,
                         likes: "0"
                     },
+                    index: index,
                     queue: queueList,
                     songsLeft: q.length - index - 1
                 }
@@ -811,6 +812,7 @@ async function canaryPlay(song, songLen, index) {
                         requester: q[index].requester,
                         likes: "0"
                     },
+                    index: index,
                     queue: [
                         {
                             title: q[index + 1].title,
@@ -1075,6 +1077,7 @@ function launchExternalDisplay() {
                         requester: q[0].requester,
                         likes: "0"
                     },
+                    index: 0,
                     queue: queueList,
                     songsLeft: q.length - 1
                 }
@@ -1087,6 +1090,7 @@ function launchExternalDisplay() {
                         requester: q[0].requester,
                         likes: "0"
                     },
+                    index: 0,
                     queue: [
                         {
                             title: q[1].title,
@@ -1126,6 +1130,69 @@ function launchExternalDisplay() {
         ipcMain.on('requestPartyCodeExDisplay', () => {
             partylog('External Display Requested Party ID, Sent ' + partyID)
             win.webContents.send('requestedPartyCode', partyID)
+        })
+
+        ipcMain.on('requestCurrentSongData', (e, index) => {
+            const q = canary.queue
+            if (q.length - (index + 1) < 4) {
+                var queueList = []
+                for (var i = index + 1; (q.length - i) > index; i++) {
+                    queueList.push({
+                        title: q[i].title,
+                        author: q[i].author,
+                        requester: q[i].requester
+                    })
+                    console.log(queueList)
+                }
+                console.log(queueList)
+                data = {
+                    nowPlaying: {
+                        title: q[index].title,
+                        author: q[index].author,
+                        thumbnail: q[index].thumbnail.split('?')[0],
+                        requester: q[index].requester,
+                        likes: "0"
+                    },
+                    index: index,
+                    queue: queueList,
+                    songsLeft: q.length - index - 1
+                }
+            } else {
+                data = {
+                    nowPlaying: {
+                        title: q[index].title,
+                        author: q[index].author,
+                        thumbnail: q[index].thumbnail.split('?')[0],
+                        requester: q[index].requester,
+                        likes: "0"
+                    },
+                    index: index,
+                    queue: [
+                        {
+                            title: q[index + 1].title,
+                            author: q[index + 1].author,
+                            requester: q[index + 1].requester
+                        },
+                        {
+                            title: q[index + 2].title,
+                            author: q[index + 2].author,
+                            requester: q[index + 2].requester
+                        },
+                        {
+                            title: q[index + 3].title,
+                            author: q[index + 3].author,
+                            requester: q[index + 3].requester
+                        },
+                        {
+                            title: q[index + 4].title,
+                            author: q[index + 4].author,
+                            requester: q[index + 4].requester
+                        },
+                    ],
+                    songsLeft: q.length
+                }
+            }
+            win.webContents.send('newExternalDisplayData', data)
         })
 
         win.on('close', () => { win = null; partylog('Closed External Display Window') })
