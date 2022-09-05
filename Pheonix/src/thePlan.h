@@ -22,6 +22,16 @@
 // 1-4 - DJFlame Plan Intrepter version, used to insure compatibility
 // 5 - 
 
+// List of commands
+enum planCommand_e {
+    PLAY=0,  //play a track
+    STOP,    //stop playing a track
+    PAUSE,   //pause a track
+    ADJUST_VOL,     //change volume
+    ADJUST_BAND,     //adjust band (bass, treble etc.)
+    JUMBO_CMD
+};
+
 typedef struct {
     float volume; //vol scale factor
     // scale factor for freq bands 
@@ -29,13 +39,28 @@ typedef struct {
     float mid, upmid, presence, brilliance;
 } audioControl_t;
 
+typedef struct {
+    unsigned channels;
+    unsigned bitsPerSample;
+    unsigned sampleRate;
+    int chunkSizeBytes(int chunk_in_ms) {
+        return (chunk_in_ms * channels * sampleRate * (bitsPerSample / 8)) / 1000;
+    }
+} waveFormat_t;
+
+// struct for a record (command) in the Plan
+// Not all fields will be valid for all commands. see notes
 typedef struct
 {
-    int  chunk;                // chunk # for this record
+    int chunk;                // chunk # for this record
+    planCommand_e command;    // command
     std::string filePath;      // path to file 
-    int  offset;               // offset chunk # in to the song
+    int trackId;              // Track ID number
+    int offset;               // offset chunk # in to the song 
     bool overrideControl;      // override control info or use default
     audioControl_t chunkControls;   // control info for this chunk
+    waveFormat_t   format;
+    int jumbo_cmd_length;      // number of commands to follow for a jumbo cmd
 } planRecord_t;
 
 
@@ -69,13 +94,18 @@ class ThePlan {
         }
 
         // add a new record to the plan
-        void addRecordToPlan(int chunk, std::string file_path, int chunk_offset, bool override_control, audioControl_t control_info) {
+        void addRecordToPlan(int chunk, planCommand_e cmd, std::string file_path, int chunk_offset, bool override_control, 
+                             audioControl_t control_info, waveFormat_t format, int track_id, int jumbo_cmd_len) {
             planRecord_t r;
             r.chunk = chunk;
+            r.command = cmd;
             r.filePath = file_path;
             r.offset = chunk_offset;
             r.overrideControl = override_control;
             r.chunkControls = control_info;
+            r.format = format;
+            r.trackId = track_id;
+            r.jumbo_cmd_length = jumbo_cmd_len;
             m_planRecords.push_back(r);
             writeRecordToFile(r);
         }

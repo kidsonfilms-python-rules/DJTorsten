@@ -55,7 +55,8 @@
         "xmemory": "cpp",
         "xstddef": "cpp",
         "xtr1common": "cpp",
-        "xtree": "cpp"
+        "xtree": "cpp",
+        "__split_buffer": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }

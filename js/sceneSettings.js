@@ -69,6 +69,7 @@ ipcRenderer.on('requestedSceneSettings', (e, sceneSettings) => {
 
     if (savedData.general.guestPicks) {
         guestPicksToggle.checked = true
+        document.getElementById("guestPicksSection").style.display = "block";
     }
     if (savedData.general.karaoke) {
         karaokeToggle.checked = true
@@ -335,6 +336,11 @@ guestPicksToggle.addEventListener('change', () => {
     } else {
         unsavedModal.style.display = 'flex'
         unsavedModal.style.visibility = 'visible'
+    }
+    if (guestPicksToggle.checked) {
+        document.getElementById("guestPicksSection").style.display = "block";
+    } else {
+        document.getElementById("guestPicksSection").style.display = "none";
     }
 })
 // karaokeToggle.addEventListener('change', () => {

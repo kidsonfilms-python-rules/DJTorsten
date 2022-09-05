@@ -1,3 +1,26 @@
-planner  class is first thread. It writes to the "ThePlan" class based on user ingputs
+planner  class is first thread. It writes to the "ThePlan" class based on user inputs.
 chunkWriter is second thread. It reads the plan, open the file, copies to ring buffer 
 another thread to enquue in to the audioplayer class (1 chunk at a time?)
+
+
+Plan command format:
+Every command has a "chunk_num". The cmd is executed when the current chunk count (basically, current time) matches the command's chunk_num. 
+If multiple commands needs to be executed at the same timestamp, the command is a "Jumbo" command.
+
+Cmd    | Description
+------------------------
+PLAY <track_id, offset, chunk_num>  | Plays a Song, undefined length, give a track and song index. "offset" is the num of chunks to skip
+STOP <track_id, chunk_num> | Stops a currently playing song, give a track and song index
+ADJUST <track_id, audio_ctrl, chunk_num> | Adjust the Volume, Bass, Mid, etc of a track
+
+JUMBO <num_cmds> | Flag Command of Multiple Commands following it at the same chunk, give # of commands
+CMD1
+CMD2
+
+
+Play, block=0, size=10, track=#5  -> chunkWrite will write 10 blocks of #5
+Play, block=1, size=4, track=#6   --> chunkWriter will merge block[1]:block[3] of #6
+
+
+Play, block=0, size=10, num_tracks=2, track
+

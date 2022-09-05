@@ -53,7 +53,7 @@
       <li class="nav-item">
         <a href="ai.html" class="nav-link">
           <i class="fa-2x fas fa-chart-network fa-secondary"></i>
-          <span class="link-text">AI</span>
+          <span class="link-text">AI DJ</span>
         </a>
       </li>
 
@@ -147,70 +147,72 @@
       <p>Create Custom Scenes where you can play videos in a queue, play music with more control, and much more!.</p>
       <hr class="solid">
     </div>
-    <h5>Guest Picks</h5>
-    <div class="settingContainer">
-      <div class="labelRow">
-        <label>Clear Music Cache</label>
-        <div id="clearCacheProxy" style="margin: 0; padding: 0;">
-          <button id="clearMusicCacheGPButton">Clear Cache</button>
-        </div>
-      </div>
-      <p>Empty Downloaded Songs Cache for Storage Management</p>
-      <hr class="solid">
-      <div class="labelRow">
-        <label>External Display&nbsp;</span> <span class="beta">beta</span></label>
-        <input type="checkbox" class="toggle" id="externalDisplayToggle">
-      </div>
-      <p>Connect a TV or External Monitor to show Guests the Song Queue.</p>
-      <button id="externalDisplayButton" style="display: none;">Select Monitor</button>
-      <hr class="solid">
-      <div class="labelRow">
-        <label>Auto Skip</label>
-      </div>
-      <p>The Amount of Time to Play Each Song.</p>
-      <ul class="timeAmount">
-        <li>
-          <input type="radio" id="randomTime-option" name="selector">
-          <label for="randomTime-option">Random Time Within Range</label>
-
-          <div class="check"></div>
-        </li>
-
-        <li>
-          <input type="radio" id="setTime-option" name="selector" checked>
-          <label for="setTime-option">Set Time</label>
-          <div class="check">
-            <div class="inside"></div>
+    <div id="guestPicksSection" style="display: none;">
+      <h5>Guest Picks</h5>
+      <div class="settingContainer">
+        <div class="labelRow">
+          <label>Clear Music Cache</label>
+          <div id="clearCacheProxy" style="margin: 0; padding: 0;">
+            <button id="clearMusicCacheGPButton">Clear Cache</button>
           </div>
-        </li>
-      </ul>
-      <div class="rangeSelector">
-        <input type="number" name="set" id="number-1">
-        <h5 id="toText">to</h5>
-        <input type="number" name="set2" id="number-2">
-      </div>
-      <hr class="solid">
-      <div class="labelRow">
-        <label>After-Queue</label>
-      </div>
-      <p>What happens after there are no more songs left in queue?</p>
-      <label class="select" for="slct">
-        <select id="slct" required="required">
-          <option value="" selected="selected">Wait for New Request</option>
-          <option value="#">Play Random Previous Song</option>
-          <option value="#">AI Choose Previous Song</option>
-        </select>
-        <svg>
-          <use xlink:href="#select-arrow-down"></use>
+        </div>
+        <p>Empty Downloaded Songs Cache for Storage Management</p>
+        <hr class="solid">
+        <div class="labelRow">
+          <label>External Display&nbsp;</span> <span class="beta">beta</span></label>
+          <input type="checkbox" class="toggle" id="externalDisplayToggle">
+        </div>
+        <p>Connect a TV or External Monitor to show Guests the Song Queue.</p>
+        <button id="externalDisplayButton" style="display: none;">Select Monitor</button>
+        <hr class="solid">
+        <div class="labelRow">
+          <label>Auto Skip</label>
+        </div>
+        <p>The Amount of Time to Play Each Song.</p>
+        <ul class="timeAmount">
+          <li>
+            <input type="radio" id="randomTime-option" name="selector">
+            <label for="randomTime-option">Random Time Within Range</label>
+  
+            <div class="check"></div>
+          </li>
+  
+          <li>
+            <input type="radio" id="setTime-option" name="selector" checked>
+            <label for="setTime-option">Set Time</label>
+            <div class="check">
+              <div class="inside"></div>
+            </div>
+          </li>
+        </ul>
+        <div class="rangeSelector">
+          <input type="number" name="set" id="number-1">
+          <h5 id="toText">to</h5>
+          <input type="number" name="set2" id="number-2">
+        </div>
+        <hr class="solid">
+        <div class="labelRow">
+          <label>After-Queue</label>
+        </div>
+        <p>What happens after there are no more songs left in queue?</p>
+        <label class="select" for="slct">
+          <select id="slct" required="required">
+            <option value="" selected="selected">Wait for New Request</option>
+            <option value="#">Play Random Previous Song</option>
+            <option value="#">AI Choose Previous Song</option>
+          </select>
+          <svg>
+            <use xlink:href="#select-arrow-down"></use>
+          </svg>
+        </label>
+        <!-- SVG Sprites-->
+        <svg class="sprites">
+          <symbol id="select-arrow-down" viewbox="0 0 10 6">
+            <polyline points="1 1 5 5 9 1"></polyline>
+          </symbol>
         </svg>
-      </label>
-      <!-- SVG Sprites-->
-      <svg class="sprites">
-        <symbol id="select-arrow-down" viewbox="0 0 10 6">
-          <polyline points="1 1 5 5 9 1"></polyline>
-        </symbol>
-      </svg>
-      <hr class="solid">
+        <hr class="solid">
+    </div>
     </div>
 
 

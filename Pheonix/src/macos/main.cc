@@ -26,32 +26,31 @@ namespace djflame_aidj_macos
     using v8::String;
     using v8::Value;
 
-
-void start(const FunctionCallbackInfo<Value> &args)
-{
-
-    playloopControl_t loopctrl;
-    loopctrl.stop.store(false, std::memory_order_release);
-
-    ThePlan *my_plan = new ThePlan ("junk.djf", false);
-    planner my_planner(my_plan);
-    chunkWriter my_writer(my_plan, &loopctrl, 1000*16, 1000, 2, 16, 44100);
-    RingBuffer *my_ringbuf = my_writer.ring();
-    // create the iCAN object (player)
-    iCAN my_iCan(my_ringbuf, &loopctrl, 1000, 2, 16, 44100);
-    // launch a new thread for playing the ring buffer content
-    std::thread playThread([&]()
+    void start(const FunctionCallbackInfo<Value> &args)
     {
-        my_iCan.run_loop();
-    });
-    my_writer.run_loop();
 
-    // sleep for 10secs, then stop the players
-    std::this_thread::sleep_for(std::chrono::milliseconds(20*1000));
-    loopctrl.stop.store(true, std::memory_order_release);
-    playThread.join(); //wait for player to finish
-}
-    
+        playloopControl_t loopctrl;
+        loopctrl.stop.store(false, std::memory_order_release);
+
+        ThePlan *my_plan = new ThePlan("junk.djf", false);
+        planner my_planner(my_plan);
+        chunkWriter my_writer(my_plan, &loopctrl, 1000 * 16, 1000, 2, 16, 48000);
+        RingBuffer *my_ringbuf = my_writer.ring();
+        // create the iCAN object (player)
+        iCAN my_iCan(my_ringbuf, &loopctrl, 1000, 2, 16, 48000);
+        // launch a new thread for playing the ring buffer content
+        std::thread playThread([&]()
+                               { my_iCan.run_loop(); });
+        std::thread createChunkThread([&]()
+                                      { my_writer.run_loop(); });
+
+        // sleep for 10secs, then stop the players
+        std::this_thread::sleep_for(std::chrono::milliseconds(60 * 1000 * 1000));
+        printf("stopping program\n");
+        loopctrl.stop.store(true, std::memory_order_release);
+        playThread.join(); // wait for player to finish
+        createChunkThread.join();
+    }
 
     void Initialize(Local<Object> exports)
     {

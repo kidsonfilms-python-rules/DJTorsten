@@ -76,18 +76,13 @@ exports.default = async context => {
       var compProSize = 0
       for (var i = 0, len = files.length; i < len; i++) {
         const file = files[i]
-        if (file.includes('.js') && !file.includes('.json')) {
+        if (file.includes('.js') && !file.includes('.json') && !file.includes('main.js')) {
 
           const options = {
             compress: {
               drop_console: file.includes('main.js') ? true : false,
-              toplevel: true,
-              passes: 3,
-              side_effects: false,
-              top_retain: ["canary", "Canary"],
-              sequences: file.includes('main.js') ? false : true
-            },
-            mangle: file.includes('main.js') ? true : false,
+              toplevel: true
+            }
           }
 
           const beforeFileStats = fs.statSync(file)
@@ -135,29 +130,33 @@ exports.default = async context => {
   }
 
   if (PLATFORM == 'mac') {
-    exec('cd dist/mac/DJFlame.app/Contents/Resources/ && npx asar extract app.asar app',
-      function (error, stdout, stderr) {
-        console.log('stdout: ' + stdout);
-        console.log('stderr: ' + stderr);
-        if (error !== null) {
-          console.log('exec error: ' + error);
-        }
-      });
+    var compressDone = false
+    var error, stdout, stderr = execSync('cd dist/mac/DJFlame.app/Contents/Resources/ && npx asar extract app.asar app')// && del /f app.asar',
+    // function (error, stdout, stderr) {
+    console.log('stdout: ' + stdout);
+    console.log('stderr: ' + stderr);
+    if (error !== null) {
+      console.log('exec error: ' + error);
+    }
     const cwd = path.join(`${APP_OUT_DIR}`, `${APP_NAME}.app/Contents/Resources/app`);
-    walk(cwd, async (err, files) => {
+    await walk(cwd, async (err, files) => {
       Console.log(chalk.bold(`Uncompressed Project Size (No Node Modules): ${chalk.greenBright(filesize(uncompProSize))}`))
       var compProSize = await compressFiles(files)
       Console.success(`Finished Compressing!`)
       Console.log(chalk.bold(`Compressed Project Size (No Node Modules): ${chalk.greenBright(`${filesize(compProSize)} ${chalk.red(`-${filesize((uncompProSize - compProSize), { round: 0 })} -${Math.floor(((uncompProSize - compProSize) / uncompProSize) * 100)}%`)}`)}`))
-      //   exec('cd dist/mac/DJFlame.app/Contents/Resources/ && npx asar pack app app.asar && rm -rf app/',
-      // function (error, stdout, stderr) {
-      //     console.log('stdout: ' + stdout);
-      //     console.log('stderr: ' + stderr);
-      //     if (error !== null) {
-      //          console.log('exec error: ' + error);
-      //     }
-      // });
+      var error, stdout, stderr = execSync('cd dist/mac/DJFlame.app/Contents/Resources/ && npx asar pack app app.asar && rm -rf app/') //(process.platform == "darwin" || "linux" ? ' rm -rf app/' : ' del /f /s /q app/ 1>nul && rmdir /s /q app/'),
+      // (error, stdout, stderr) => {
+      console.log('stdout: ' + stdout);
+      console.log('stderr: ' + stderr);
+      if (error !== null) {
+        console.log('exec error: ' + error);
+      }
+      compressDone = true
     })
+    while (compressDone == false) {
+      await sleep(1000);
+    }
+    Console.success('Done Confirmed!')
   } else if (PLATFORM == "windows") {
     var error, stdout, stderr = execSync('cd dist/win-unpacked/resources/ && npx asar extract app.asar app')// && del /f app.asar',
     // function (error, stdout, stderr) {
@@ -174,14 +173,14 @@ exports.default = async context => {
       var compProSize = await compressFiles(files)
       Console.success(`Finished Compressing!`)
       Console.log(chalk.bold(`Compressed Project Size (No Node Modules): ${chalk.greenBright(`${filesize(compProSize)} ${chalk.red(`-${filesize((uncompProSize - compProSize), { round: 0 })} -${Math.floor(((uncompProSize - compProSize) / uncompProSize) * 100)}%`)}`)}`))
-      // var error, stdout, stderr = execSync('cd dist/win-unpacked/resources/ && npx asar pack app app.asar &&' + ' rmdir /s /q app') //(process.platform == "darwin" || "linux" ? ' rm -rf app/' : ' del /f /s /q app/ 1>nul && rmdir /s /q app/'),
-      //   // (error, stdout, stderr) => {
-      //     console.log('stdout: ' + stdout);
-      //     console.log('stderr: ' + stderr);
-      //     if (error !== null) {
-      //       console.log('exec error: ' + error);
-      //     }
-      //   // });
+      var error, stdout, stderr = execSync('cd dist/win-unpacked/resources/ && npx asar pack app app.asar &&' + ' rmdir /s /q app') //(process.platform == "darwin" || "linux" ? ' rm -rf app/' : ' del /f /s /q app/ 1>nul && rmdir /s /q app/'),
+      // (error, stdout, stderr) => {
+      console.log('stdout: ' + stdout);
+      console.log('stderr: ' + stderr);
+      if (error !== null) {
+        console.log('exec error: ' + error);
+      }
+      // });
       Console.success("Compress Done!")
       Console.error(err ? err : "No Errors :)")
       compressDone = true

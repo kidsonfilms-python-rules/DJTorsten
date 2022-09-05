@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include <string.h>
 #include <atomic>
+#include <assert.h>
+
 // This class implements a ring buffer for holding wave data
 
 class RingBuffer {
@@ -23,9 +25,10 @@ class RingBuffer {
             // constructor
 
             // Head, tail and size is in # of chunks
-            m_head.store(0, std::memory_order_release);
-            m_tail.store(0, std::memory_order_release);
+            m_head.store(0, std::memory_order_release); // head=0 at init
+            m_tail.store(0, std::memory_order_release); // tail=0 at init
             m_size = numChunks; 
+            assert(m_size > 2); //need at least 3 chunks
             m_chunkSize = chunkSize;
 
             // m_chunkSize = chunk_in_secs * m_numChannels * m_samplesPerSec * (m_bitsPerSample/8); 
@@ -49,6 +52,9 @@ class RingBuffer {
 
         // Copies one chunk (or specified number) to Ring Buffer. Returns true when copy succeeds, false when copy fails.
         bool writeChunk(void* sourcePtr, int numberOfChunks);
+        // Instead of writing full chunk, write partially 
+        bool writeChunkBytes(void *SourcePtr, unsigned byteOffset, unsigned numBytes);
+        void updateHead(int steps);
         // Get valid chunks that can be read safely.
         int getValidChunks();
         

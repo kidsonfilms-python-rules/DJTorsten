@@ -370,9 +370,9 @@ function initLogDir() {
     }
     // if (!fs.existsSync(path.join(partyLogDir, 'node-errors.log'))) {
     const error = fs.createWriteStream(partyLogDir + '/node.error.log', { flags: 'a' });
-    if (process.platform == "darwin") {
-        process.stderr.pipe(error);
-    }
+    // if (process.platform == "darwin") {
+    //     process.stderr.pipe(error);
+    // }
     // }
     if (!fs.existsSync(path.join(partyLogDir, 'crash-dumps/'))) {
         fs.mkdirSync(path.join(partyLogDir, 'crash-dumps/'))
@@ -409,6 +409,7 @@ function getSceneSettings() {
         db.collection('parties').doc(partyID).get().then((doc) => {
             if (doc.exists) {
                 console.log("Document data:", doc.data());
+                partylog("Document data:" + doc.data())
                 var data = doc.data()
                 config.set('sceneSettings', {
                     general: {
@@ -431,6 +432,7 @@ function getSceneSettings() {
                 console.log("No such document!");
             }
         }).catch((error) => {
+            partylog("Error getting document: " + error, true)
             console.log("Error getting document:", error);
         });
         initLogDir()
@@ -438,6 +440,7 @@ function getSceneSettings() {
         partylog('Found Scene Settings')
     } else {
         console.log('Entering Developer Database Saving Mode...')
+        partylog('Entering Developer Database Saving Mode...')
         config.set('sceneSettings', {
             general: {
                 guestPicks: true,
