@@ -29,7 +29,7 @@
     "minify": "^7.2.2",
     "mocha": "^9.1.3",
     "spectron": "^15.0.0",
-    "uglify-js": "^3.14.5",
+    "uglify-js": "^3.17.2",
     "dotenv": "^10.0.0"
   },
   "testEnvironment": "node",
