@@ -20,7 +20,7 @@
   "author": "DJFlame",
   "license": "LICENSE.md",
   "devDependencies": {
-    "chalk": "^4.1.2",
+    "chalk": "^5.1.0",
     "Console": "^1.1.0",
     "electron": "^13.2.1",
     "electron-builder": "^22.14.5",
