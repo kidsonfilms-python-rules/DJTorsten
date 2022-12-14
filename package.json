@@ -39,7 +39,7 @@
     "electron-updater": "^4.6.1",
     "firebase": "^8.9.1",
     "get-audio-duration": "^3.0.0",
-    "jquery": "^3.6.0",
+    "jquery": "^3.6.2",
     "music-tempo": "^1.0.3",
     "play-sound": "^1.1.3",
     "solenolyrics": "^5.0.0",
